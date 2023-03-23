@@ -77,7 +77,8 @@ We currently select the combination of BELLE and Guanaco data as our main traini
 
 - lora模型：
 
-  - 我们提供了一个在上面混合数据上训练了大概40w条的lora模型，见 https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-3000，由于比较小暂时直接传在github上
+  - 我们提供了一个在上面混合数据上训练了大概40w条的lora模型，见 https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-3000  
+    - 由于比较小暂时直接传在github上
 
 - 设备：
 
