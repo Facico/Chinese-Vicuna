@@ -1,10 +1,12 @@
 # Chinese-Vicuna: A Chinese Instruction-following LLaMA-based Model —— 一个中文低资源的llama+lora方案
 
-​                                                                                       | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) |
+​																								 | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) |
 
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
 
 This is the repo for the Chinese-Vicuna project, which aims to build and share an instruction-following Chinese LLaMA model which can run on a single Nvidia RTX-2080TI, that why we named this project `Vicuna`, small but strong enough ! 
+
+- Why is it called Vicuna：In view of the successful development of alpaca models such as [llama](https://github.com/facebookresearch/llama),[alpaca](https://github.com/tatsu-lab/stanford_alpaca),[guanaco](https://github.com/Guanaco-Model/Guanaco-Model.github.io)，We want to train a Chinese small alpaca like Vicuna.
 
 The repo contains:
 
@@ -35,6 +37,7 @@ Here, we will help you train through a very low-demand environment, with only on
 | colab link                                                   | Descriptions                                                 |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1OLCJ-ZHogm5O3RdyUDY83YfgnCXdHNXp?usp=sharing) | Use the specified lora model to inference and generate a webui |
+| [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1SOOJjxp02uuUFDNgm4jkvaA_IdNnnvdk?usp=sharing) | Finetune with the data we collected                          |
 
 ## Performance
 
@@ -76,13 +79,14 @@ def binary_search(arr, target):
         else:
             high = mid - 1
     return -1
-​```
+```
+
 Q：怎么让自己精力充沛，列5点建议
 A：1. 保持良好的睡眠习惯；2. 定期锻炼身体；3. 学习新技能或知识；4. 与家人和朋友交流；5. 多听放松音乐。
 Q：父母都姓吴，取一些男宝宝和女宝宝的名字
 A：男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是吴华、吴秀、吴美、吴婷等。
-```
 
+```
 Due to the small number of training rounds so far, the effect on casual conversations is still average, but we can see that there is already a good ability. This LORA model is the result of 30 hours of training with a 2080Ti (checkpoint-3000), about 40wstep
 
 ## What we need?
@@ -107,10 +111,10 @@ Due to the small number of training rounds so far, the effect on casual conversa
       'input': 
       'output'
       }
-      ```
+```
 
     - That is, an instruction, an input, and an output are required. since the data is processed by directly linking instruction and input, the data can actually require only instruction and output, as
-
+    
       - ```
         {
         'instruction': "用一句话描述地球为什么是独一无二的。\\n\n"
@@ -178,15 +182,15 @@ bash generate.sh
     - It should be noted here that the config loaded by the lora model must be "adapter_config.json" and the model name must be "adapter_model.bin", but it will be automatically saved as "pytorch_model.bin" during training. pytorch_model.bin" during training, while "adapter_config.json" and "adapter_model.bin" will be saved after all training is finished
       - If you load the lora model in the training checkpoint, the code will automatically copy the local "config-sample/adapter_config.json" to the corresponding directory for you and rename the "pytorch_model.bin" to "adapter_model.bin". and rename "pytorch_model.bin" to "adapter_model.bin".
 
-  
+- When using, "max_tokens" is set according to your computer's video memory, and if the generated content generates a lot of duplicate information, you can turn up the "Repetition Penalty".
 
 # todo
 
 - [x] belle+guanaco(0.72 epoch, 4000 step)
-
 - [ ] belle+guanaco(100%)
 - [ ] Add more chitchat-like conversational corpus to enhance free conversation
 - [x] Add colab training + lora loading interface
+- [ ] Add llama c++ inference
 
 # Citation
 
