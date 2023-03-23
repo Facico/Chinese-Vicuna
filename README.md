@@ -123,9 +123,10 @@ Due to the small number of training rounds so far, the effect on casual conversa
         }
         ```
 
-  - The data we currently integrate is available for download on BaiduDownload
+  - The data we currently integrate is available for download on BaiduDownload or Google Drive
 
     - link: https://pan.baidu.com/s/1WSxuhSAotl14ifaAiz5eKw?pwd=b4kb   password: b4kb 
+    - link: https://drive.google.com/file/d/1tzXVhS74m-EtoFot7hEc005LDeZGPit_/view?usp=sharing
 
 - Large Language Model：
 
