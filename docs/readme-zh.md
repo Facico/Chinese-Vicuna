@@ -8,6 +8,7 @@
 
 - finetune模型的代码
 - 推理的代码
+- 仅使用CPU推理的代码 (使用C++) 
 
 ## 概述
 
@@ -143,7 +144,7 @@ A：男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是�
   - 训练：一张2080Ti即可。由于数据长度都在256以内，大概占用9G显存。
     - 70w的数据，3个epoch，一张2080Ti大概200h
   - 推理：一张2080Ti即可。
-
+  - 我们对纯CPU上推理也进行了支持，详情见[`tools`](https://github.com/Facico/Chinese-Vicuna/blob/master/tools)
   
 
 ## 怎么使用
@@ -182,6 +183,10 @@ bash generate.sh
       - 如果你是在训练的checkpoint中载入的lora模型，代码里会自动帮你把本地的"config-sample/adapter_config.json"复制到对应目录，并把“pytorch_model.bin”改名为“adapter_model.bin”
 
 - 使用的时候，"max_tokens"根据自己电脑的显存来设置，如果生成的内容产生了很多重复信息，可以将"Repetition Penalty"调高
+
+**仅使用CPU进行推理**
+
+详情见`tools`的[readme](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)
 
 # todo
 

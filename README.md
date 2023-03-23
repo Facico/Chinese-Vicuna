@@ -188,6 +188,10 @@ bash generate.sh
 
 - When using, "max_tokens" is set according to your computer's video memory, and if the generated content generates a lot of duplicate information, you can turn up the "Repetition Penalty".
 
+**inference only use CPU**
+
+Details in `tools` [readme](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)
+
 # todo
 
 - [x] belle+guanaco(0.72 epoch, 4000 step)
