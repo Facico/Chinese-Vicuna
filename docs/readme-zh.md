@@ -64,6 +64,26 @@ A：北京有很多约会的地方，可以推荐以下几个约会的地方：
 3. 北京故宫博物馆
 4. 北京天安门广场
 5. 颐和园风景区
+Q：用python写一个二分查找的代码
+A：
+​```python
+def binary_search(arr, target):
+    low = 0
+    high = len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1
+​```
+Q：怎么让自己精力充沛，列5点建议
+A：1. 保持良好的睡眠习惯；2. 定期锻炼身体；3. 学习新技能或知识；4. 与家人和朋友交流；5. 多听放松音乐。
+Q：父母都姓吴，取一些男宝宝和女宝宝的名字
+A：男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是吴华、吴秀、吴美、吴婷等。
 ```
 
 由于目前训练轮数不多，在自由对话上效果还一般，但我们可以看到已经具备了不错的能力
@@ -73,12 +93,14 @@ A：北京有很多约会的地方，可以推荐以下几个约会的地方：
 ## 训练一个lora需要什么
 
 - 代码：
+
   - 此代码基于alpaca-lora开发，https://github.com/tloen/alpaca-lora
   - 这是一套比较简单的代码，基本思路就是用[PEFT](https://github.com/huggingface/peft)的lora接口+transformer的trainer+instruction的数据配置
-  
+
 - 数据：
 
   - 我们利用了目前几份高质量的开源数据，非常感谢他们的贡献。这些数据很多都像alpaca那样，使用chatgpt的接口，生成高质量的instruction数据。
+
     - [Belle](https://github.com/LianjiaTech/BELLE)
     - [guanaco](https://huggingface.co/datasets/JosephusCheung/GuanacoDataset)
 
@@ -103,9 +125,9 @@ A：北京有很多约会的地方，可以推荐以下几个约会的地方：
         ```
 
   - 目前我们整合的数据可以在网盘上下载
-  
+
     - 链接: https://pan.baidu.com/s/1WSxuhSAotl14ifaAiz5eKw?pwd=b4kb 提取码: b4kb 
-  
+
 - 上游模型：
 
   - LLAMA 7B（当然，如果你有更大的机器可以换成13B的，LLAMA13B在数值上优于175B的GPT3）
@@ -121,7 +143,7 @@ A：北京有很多约会的地方，可以推荐以下几个约会的地方：
   - 训练：一张2080Ti即可。由于数据长度都在256以内，大概占用9G显存。
     - 70w的数据，3个epoch，一张2080Ti大概200h
   - 推理：一张2080Ti即可。
-  
+
   
 
 ## 怎么使用
