@@ -107,8 +107,7 @@ if torch.__version__ >= "2" and sys.platform != "win32":
 
 
 def evaluate(
-    instruction,
-    input=None,
+    input,
     temperature=0.1,
     top_p=0.75,
     top_k=40,
@@ -116,7 +115,7 @@ def evaluate(
     max_new_tokens=128,
     **kwargs,
 ):
-    prompt = generate_prompt(instruction, input)
+    prompt = generate_prompt(input)
     inputs = tokenizer(prompt, return_tensors="pt")
     input_ids = inputs["input_ids"].to(device)
     generation_config = GenerationConfig(
@@ -143,9 +142,8 @@ gr.Interface(
     fn=evaluate,
     inputs=[
         gr.components.Textbox(
-            lines=2, label="Instruction", placeholder="Tell me about alpacas."
+            lines=2, label="Input", placeholder="Tell me about alpacas."
         ),
-        gr.components.Textbox(lines=2, label="Input", placeholder="none"),
         gr.components.Slider(minimum=0, maximum=1, value=0.1, label="Temperature"),
         gr.components.Slider(minimum=0, maximum=1, value=0.75, label="Top p"),
         gr.components.Slider(minimum=0, maximum=100, step=1, value=40, label="Top k"),
@@ -162,7 +160,7 @@ gr.Interface(
     ],
     title="Chinese-Vicuna 中文小羊驼",
     description="中文小羊驼由各种高质量的开源instruction数据集，结合Alpaca-lora的代码训练而来，模型基于开源的llama7B，主要贡献是对应的lora模型。由于代码训练资源要求较小，希望为llama中文lora社区做一份贡献。",
-).launch()
+).launch(share=True)
 
 # Old testing code follows.
 
