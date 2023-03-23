@@ -83,7 +83,29 @@ We currently select the combination of BELLE and Guanaco data as our main traini
 - 设备：
 
   - 训练：一张2080Ti即可。由于数据长度都在256以内，大概占用9G显存。
+    - 70w的数据，3个epoch，一张2080Ti大概200h
   - 推理：一张2080Ti即可。
+
+  模型使用的是8bit+lora+256 token
+
+## 模型效果
+
+```
+Q：生成一份python的排序代码
+A：def sort_list(lst):
+    lst.sort()
+    return lst
+Q：自然语言处理是什么
+A：自然语言处理是一种计算机科学领域，旨在使计算机能够理解和处理自然语言。
+Q：能给我讲一段笑话吗
+A：为什么猫吃鱼？因为它们喜欢游泳。
+Q：将下面文字翻译成英文。猫喜欢吃鱼，所以它们会游泳
+A：Cats like to eat fish, so they will swim.
+```
+
+由于目前训练轮数不多，在自由对话上效果还一般，但我们可以看到已经具备了不错的能力
+
+- 这个lora是我们用一张2080训练了30个小时得到的结果（checkpoint-3000），大概40wstep
 
 ## How to use
 
@@ -111,6 +133,14 @@ bash generate.sh
   - LORA_PATH，lora模型的checkpoint文件夹
     - 这里要注意的是，lora模型加载的config必须是"adapter_config.json"，模型名字必须是“adapter_model.bin”，不过在训练的时候会自动保存为“pytorch_model.bin”，而"adapter_config.json"和“adapter_model.bin”会在全部训练结束之后保存
       - 如果你是在训练的checkpoint中载入的lora模型，代码里会自动帮你把本地的"config-sample/adapter_config.json"复制到对应目录，并把“pytorch_model.bin”改名为“adapter_model.bin”
+
+# todo
+
+- [x] belle+guanaco(40w step)
+
+- [ ] belle+guanaco(100%)
+- [ ] 加入更多类似chitchat的对话型语料，增强自由对话的能力
+- [ ] 增加colab训练+lora载入接口
 
 # Citation
 
