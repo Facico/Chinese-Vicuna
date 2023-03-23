@@ -1,0 +1,6 @@
+__pycache__/
+checkpoint**
+*ckpt
+wandb
+runs
+flagged
