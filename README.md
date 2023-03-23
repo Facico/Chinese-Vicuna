@@ -13,6 +13,7 @@ This is the repo for the Chinese-Vicuna project, which aims to build and share a
 The repo contains:
 - code for finetune the model 
 - code for generation based on trained model
+- code for run on CPU (fp16 or int4 is support, in purely C++)
 
 ## Overview
 
@@ -144,6 +145,7 @@ Due to the small number of training rounds so far, the effect on casual conversa
   - Training：A 2080Ti is sufficient. Since the data length is within 256, it takes about 9G of video memory.
     - 70w of data, 3 epochs, a 2080Ti about 200h
   - Inference：A 2080Ti is all you need。
+  - CPU Inference is also support! please go to see [`tools`](https://github.com/Facico/Chinese-Vicuna/blob/master/tools)
 
   
 
@@ -192,7 +194,7 @@ bash generate.sh
 - [ ] belle+guanaco(100%)
 - [ ] Add more chitchat-like conversational corpus to enhance free conversation
 - [x] Add colab training + lora loading interface
-- [ ] Add llama c++ inference
+- [x] Add llama c++ inference
 
 # Citation
 
