@@ -1,12 +1,10 @@
 # Chinese-Vicuna: A Chinese Instruction-following LLaMA-based Model —— 一个中文低资源的llama+lora方案
 
+​                                                                                       | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) |
+
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
 
-鉴于[llama](https://github.com/facebookresearch/llama),[alpaca](https://github.com/tatsu-lab/stanford_alpaca),[guanaco](https://github.com/Guanaco-Model/Guanaco-Model.github.io)等羊驼模型的研发成功，我们希望构建一个中文的羊驼模型，并帮助大家能快速学会使用引入自己的数据，并训练出属于自己的羊驼。
-
-
-
-This is the repo for the Chinese-Vicuna project, which aims to build and share an instruction-following Chinese LLaMA model which can run on a single Nvidia RTX-2080TI, that why we named this project `Vicuna`, small but strong enough !
+This is the repo for the Chinese-Vicuna project, which aims to build and share an instruction-following Chinese LLaMA model which can run on a single Nvidia RTX-2080TI, that why we named this project `Vicuna`, small but strong enough ! 
 
 The repo contains:
 
@@ -22,73 +20,23 @@ The repo contains:
 
 We currently select the combination of BELLE and Guanaco data as our main training dataset. We will also add more chitchat dataset ( e.g. [LCCC](https://github.com/thu-coai/CDial-GPT) ) to support casual conversation.
 
-## 意义在哪
+## What is the meaning?
 
-类似于stable diffusion模型的爆火，出现了像civitai等平台，由一个基础的模型+各种LORA模型的开源社区。
+Similar to the explosion of the stable diffusion model, platforms like civitai have emerged, consisting of a base model + various LORA models in an open source community.
 
-本项目希望帮助大家去训练这个LORA
+The repo hopes to help you to train these LORA models.
 
-- 什么是LORA
-  - 简单的说就是用来帮大模型适应你的数据集的一个插件，技术细节见[LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/pdf/2106.09685.pdf)，他的优点是finetune的时候非常的快，得到的模型也很小，大概30M左右，关键是支持**即插即用**。可以预见，这是一个非常适合开源生态的架构。
+**what is LORA?**：Simply, it's a plugin used to help adapt large models to your dataset, technical details can be found in[LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/pdf/2106.09685.pdf)。Its advantage is that the finetune is very fast when it comes to getting a small model, about 30M, and the key is that it supports **Plug and Play**. As can be expected, this is a very suitable architecture for open source ecology.
 
-我们这里，将通过非常低配置的环境，帮助大家训练，仅一张**2080**（11G）就能取得一定的效果。
+Here, we will help you train through a very low-demand environment, with only one **2080** (11G) to achieve certain results.
 
-## What we need
+## Try on colab
 
-- 代码：
+| colab link                                                   | Descriptions                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1OLCJ-ZHogm5O3RdyUDY83YfgnCXdHNXp?usp=sharing) | Use the specified lora model to inference and generate a webui |
 
-  - 此代码基于alpaca-lora开发，https://github.com/tloen/alpaca-lora
-  - 这是一套比较简单的代码，基本思路就是用[PEFT](https://github.com/huggingface/peft)的lora接口+transformer的trainer+instruction的数据配置
-
-- 数据：
-
-  - 我们利用了目前几份高质量的开源数据，非常感谢他们的贡献。这些数据很多都像alpaca那样，使用chatgpt的接口，生成高质量的instruction数据。
-
-    - [Belle](https://github.com/LianjiaTech/BELLE)
-    - [guanaco](https://huggingface.co/datasets/JosephusCheung/GuanacoDataset)
-
-  - 数据格式比较简单，基本如下，简单的例子如：[`./sample/merge_sample.json`](https://github.com/Facico/Chinese-Vicuna/blob/master/sample/merge_sample.json)
-
-    - ```
-      {
-      'instruction': 
-      'input': 
-      'output'
-      }
-      ```
-
-    - 即需要一个指令，一个input，一个output。由于数据处理的时候是直接将instruction和input连接起来的，所以数据其实可以只需要instruction和output，如
-
-      - ```
-        {
-        'instruction': "用一句话描述地球为什么是独一无二的。\\n\n"
-        'input': ""
-        'output': "地球上有适宜生命存在的条件和多样化的生命形式。"
-        }
-        ```
-
-  - 目前我们整合的数据可以在网盘上下载
-
-    - 链接: https://pan.baidu.com/s/1WSxuhSAotl14ifaAiz5eKw?pwd=b4kb 提取码: b4kb 
-
-- 上游模型：
-
-  - LLAMA 7B（当然，如果你有更大的机器可以换成13B的，LLAMA13B在数值上优于175B的GPT3）
-
-- lora模型：
-
-  - 我们提供了一个在上面混合数据上训练了大概40w条的lora模型，见 https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-3000  
-    - 由于比较小暂时直接传在github上
-
-- 设备：
-
-  - 训练：一张2080Ti即可。由于数据长度都在256以内，大概占用9G显存。
-    - 70w的数据，3个epoch，一张2080Ti大概200h
-  - 推理：一张2080Ti即可。
-
-  模型使用的是8bit+lora+256 token
-
-## 模型效果
+## Performance
 
 ```
 Q：生成一份python的排序代码
@@ -115,44 +63,110 @@ A：北京有很多约会的地方，可以推荐以下几个约会的地方：
 5. 颐和园风景区
 ```
 
-由于目前训练轮数不多，在自由对话上效果还一般，但我们可以看到已经具备了不错的能力
+Due to the small number of training rounds so far, the effect on casual conversations is still average, but we can see that there is already a good ability. This LORA model is the result of 30 hours of training with a 2080Ti (checkpoint-3000), about 40wstep
 
-- 这个lora是我们用一张2080训练了30个小时得到的结果（checkpoint-3000），大概40wstep
+## What we need?
+
+- code：
+
+  - This code is developed based on alpaca-lora，https://github.com/tloen/alpaca-lora
+  - This is a relatively simple set of code, the basic idea is to use PEFT's lora interface + transformer's trainer + instruction data configuration
+
+- data：
+
+  - We have utilized several current high quality open source data and are very grateful for their contributions. Many of these data use chatgpt's interface like alpaca to generate high quality INSTRUCTION data.
+
+    - [Belle](https://github.com/LianjiaTech/BELLE)
+    - [guanaco](https://huggingface.co/datasets/JosephusCheung/GuanacoDataset)
+
+  - The data format is relatively simple, basically as follows, with simple examples such as：[`./sample/merge_sample.json`](https://github.com/Facico/Chinese-Vicuna/blob/master/sample/merge_sample.json)
+
+    - ```
+      {
+      'instruction': 
+      'input': 
+      'output'
+      }
+      ```
+
+    - That is, an instruction, an input, and an output are required. since the data is processed by directly linking instruction and input, the data can actually require only instruction and output, as
+
+      - ```
+        {
+        'instruction': "用一句话描述地球为什么是独一无二的。\\n\n"
+        'input': ""
+        'output': "地球上有适宜生命存在的条件和多样化的生命形式。"
+        }
+        ```
+
+  - The data we currently integrate is available for download on BaiduDownload
+
+    - link: https://pan.baidu.com/s/1WSxuhSAotl14ifaAiz5eKw?pwd=b4kb   password: b4kb 
+
+- Large Language Model：
+
+  - LLAMA 7B（Of course, if you have a larger machine(such as 3090Ti) can be replaced with a 13B, LLAMA13B is numerically superior to 175B GPT3）
+
+- LORA model：
+
+  - We provide a lora model trained on the above mixed data with roughly 50w entries, see https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
+    - Since the model is relatively small, it is temporarily uploaded on github(about 30M)
+    - The model uses 8bit+lora+256 tokens
+
+- Device：
+
+  - Training：A 2080Ti is sufficient. Since the data length is within 256, it takes about 9G of video memory.
+    - 70w of data, 3 epochs, a 2080Ti about 200h
+  - Inference：A 2080Ti is all you need。
+
+  
 
 ## How to use
 
-训练
+**Installation**
+
+```
+git clone https://github.com/Facico/Chinese-Vicuna
+pip install -r requirements.txt
+```
+
+Local python environment is 3.8, torch is 1.13.1, CUDA is 12
+
+**Training**
 
 ```bash
 bash finetune.sh
 ```
 
-- 这里需要注意的参数如下
-  - TOT_CUDA，填写需要使用的GPU编号，如`TOT_CUDA="0,1,2,3"`
-  - PORT，填写对应的端口
-  - DATA_PATH，填写对应的数据位置，格式为json
-  - OUTPUT_PATH，保存模型的相对路径
-  - MODEL_PATH，上游模型
+- The parameters to note here are as follows
+  - TOT_CUDA, fill in the GPU number to be used, such as `TOT_CUDA="0,1,2,3"`
+  - PORT, fill in the corresponding port
+  - DATA_PATH，fill in the corresponding data location in the format of json
+  - OUTPUT_PATH，fill in the relative path to save the model
+  - MODEL_PATH，path of LLM
 
-inference并使用gradio生成一个网页
+**inference and use gradio to generate a web page**
 
 ```bash
 bash generate.sh
 ```
 
-- 这里需要注意的参数如下
-  - BASE_MODEL，上游模型
-  - LORA_PATH，lora模型的checkpoint文件夹
-    - 这里要注意的是，lora模型加载的config必须是"adapter_config.json"，模型名字必须是“adapter_model.bin”，不过在训练的时候会自动保存为“pytorch_model.bin”，而"adapter_config.json"和“adapter_model.bin”会在全部训练结束之后保存
-      - 如果你是在训练的checkpoint中载入的lora模型，代码里会自动帮你把本地的"config-sample/adapter_config.json"复制到对应目录，并把“pytorch_model.bin”改名为“adapter_model.bin”
+- The parameters to note here are as follows
+
+  - BASE_MODEL，path of LLM
+  - LORA_PATH，The checkpoint folder of the lora model
+    - It should be noted here that the config loaded by the lora model must be "adapter_config.json" and the model name must be "adapter_model.bin", but it will be automatically saved as "pytorch_model.bin" during training. pytorch_model.bin" during training, while "adapter_config.json" and "adapter_model.bin" will be saved after all training is finished
+      - If you load the lora model in the training checkpoint, the code will automatically copy the local "config-sample/adapter_config.json" to the corresponding directory for you and rename the "pytorch_model.bin" to "adapter_model.bin". and rename "pytorch_model.bin" to "adapter_model.bin".
+
+  
 
 # todo
 
-- [x] belle+guanaco(40w step)
+- [x] belle+guanaco(0.72 epoch, 4000 step)
 
 - [ ] belle+guanaco(100%)
-- [ ] 加入更多类似chitchat的对话型语料，增强自由对话的能力
-- [ ] 增加colab训练+lora载入接口
+- [ ] Add more chitchat-like conversational corpus to enhance free conversation
+- [x] Add colab training + lora loading interface
 
 # Citation
 
