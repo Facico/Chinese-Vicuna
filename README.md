@@ -1,4 +1,4 @@
-# Chinese-Vicuna: A Chinese Instruction-following LLaMA-based Model
+# Chinese-Vicuna: A Chinese Instruction-following LLaMA-based Model —— 一个中文低资源的llama+lora方案
 
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
 
