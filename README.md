@@ -2,7 +2,7 @@
 
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
 
-This is the repo for the Chinese-Vicuna project, which aims to build and share an instruction-following Chinese LLaMA model with can run on a single Nvidia RTX-2080TI, that why we named these project `Vicuna`, small but strong enough !
+This is the repo for the Chinese-Vicuna project, which aims to build and share an instruction-following Chinese LLaMA model which can run on a single Nvidia RTX-2080TI, that why we named this project `Vicuna`, small but strong enough !
 
 The repo contains:
 - code for finetune the model ()
