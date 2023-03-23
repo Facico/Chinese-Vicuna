@@ -61,6 +61,26 @@ A：北京有很多约会的地方，可以推荐以下几个约会的地方：
 3. 北京故宫博物馆
 4. 北京天安门广场
 5. 颐和园风景区
+Q：用python写一个二分查找的代码
+A：
+​```python
+def binary_search(arr, target):
+    low = 0
+    high = len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1
+​```
+Q：怎么让自己精力充沛，列5点建议
+A：1. 保持良好的睡眠习惯；2. 定期锻炼身体；3. 学习新技能或知识；4. 与家人和朋友交流；5. 多听放松音乐。
+Q：父母都姓吴，取一些男宝宝和女宝宝的名字
+A：男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是吴华、吴秀、吴美、吴婷等。
 ```
 
 Due to the small number of training rounds so far, the effect on casual conversations is still average, but we can see that there is already a good ability. This LORA model is the result of 30 hours of training with a 2080Ti (checkpoint-3000), about 40wstep
