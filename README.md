@@ -36,18 +36,14 @@ We currently select the combination of BELLE and Guanaco data as our main traini
 ## What we need
 
 - 代码：
+
   - 此代码基于alpaca-lora开发，https://github.com/tloen/alpaca-lora
   - 这是一套比较简单的代码，基本思路就是用[PEFT](https://github.com/huggingface/peft)的lora接口+transformer的trainer+instruction的数据配置
-- 上游模型：
-  - LLAMA 7B（当然，如果你有更大的机器可以换成13B的，LLAMA13B在数值上优于175B的GPT3）
-
-- 设备：
-  - 训练：一张2080Ti即可。由于数据长度都在256以内，大概占用9G显存。
-  - 推理：一张2080Ti即可。
 
 - 数据：
 
   - 我们利用了目前几份高质量的开源数据，非常感谢他们的贡献。这些数据很多都像alpaca那样，使用chatgpt的接口，生成高质量的instruction数据。
+
     - [Belle](https://github.com/LianjiaTech/BELLE)
     - [guanaco](https://huggingface.co/datasets/JosephusCheung/GuanacoDataset)
 
@@ -71,7 +67,22 @@ We currently select the combination of BELLE and Guanaco data as our main traini
         }
         ```
 
-  - 整理的数据后续我们将上传上来
+  - 目前我们整合的数据可以在网盘上下载
+
+    - 链接: https://pan.baidu.com/s/1WSxuhSAotl14ifaAiz5eKw?pwd=b4kb 提取码: b4kb 
+
+- 上游模型：
+
+  - LLAMA 7B（当然，如果你有更大的机器可以换成13B的，LLAMA13B在数值上优于175B的GPT3）
+
+- lora模型：
+
+  - 我们提供了一个在上面混合数据上训练了大概40w条的lora模型，见 https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-3000，由于比较小暂时直接传在github上
+
+- 设备：
+
+  - 训练：一张2080Ti即可。由于数据长度都在256以内，大概占用9G显存。
+  - 推理：一张2080Ti即可。
 
 ## How to use
 
@@ -81,7 +92,7 @@ We currently select the combination of BELLE and Guanaco data as our main traini
 bash finetune.sh
 ```
 
-- 这里需要注意的是几个参数
+- 这里需要注意的参数如下
   - TOT_CUDA，填写需要使用的GPU编号，如`TOT_CUDA="0,1,2,3"`
   - PORT，填写对应的端口
   - DATA_PATH，填写对应的数据位置，格式为json
@@ -94,7 +105,11 @@ inference并使用gradio生成一个网页
 bash generate.sh
 ```
 
-
+- 这里需要注意的参数如下
+  - BASE_MODEL，上游模型
+  - LORA_PATH，lora模型的checkpoint文件夹
+    - 这里要注意的是，lora模型加载的config必须是"adapter_config.json"，模型名字必须是“adapter_model.bin”，不过在训练的时候会自动保存为“pytorch_model.bin”，而"adapter_config.json"和“adapter_model.bin”会在全部训练结束之后保存
+      - 如果你是在训练的checkpoint中载入的lora模型，代码里会自动帮你把本地的"config-sample/adapter_config.json"复制到对应目录，并把“pytorch_model.bin”改名为“adapter_model.bin”
 
 # Citation
 
@@ -108,4 +123,3 @@ If you find this project useful in your research, please consider citing:
   year={2023}
 }
 ```
-
