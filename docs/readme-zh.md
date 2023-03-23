@@ -123,9 +123,10 @@ A：男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是�
         }
         ```
 
-  - 目前我们整合的数据可以在网盘上下载
+  - 目前我们整合的数据可以在百度网盘或google drive上下载
 
     - 链接: https://pan.baidu.com/s/1WSxuhSAotl14ifaAiz5eKw?pwd=b4kb 提取码: b4kb 
+    - 链接: https://drive.google.com/file/d/1tzXVhS74m-EtoFot7hEc005LDeZGPit_/view?usp=sharing
 
 - 上游模型：
 
