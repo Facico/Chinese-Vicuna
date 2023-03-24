@@ -349,7 +349,7 @@ def convert_llama_fb(args):
 
 def convert_llama_hf(args):
     write_model(
-        model_path=args.output_dir
+        model_path=args.output_dir,
         input_base_path=args.ckpt_dir,
         model_size=args.model_size,
     )

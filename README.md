@@ -157,6 +157,8 @@ pip install -r requirements.txt
 
 Local python environment is 3.8, torch is 1.13.1, CUDA is 12
 
+NOTE: python3.11 has a known `torchrun` bug, details [here](https://github.com/facebookresearch/llama/issues/86)
+
 **Multi-gpu Training**
 
 ```bash
