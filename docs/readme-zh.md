@@ -15,7 +15,7 @@
 - March 23, 2023：开放了使用50w条数据训练的checkpoint-4000
 - March 23, 2023：在colab上部署了fine-tuning和inference的代码
 - March 23, 2023：提供了使用纯C++在CPU上进行推理的方案
-- March 24, 2023：开放了使用100w条数据训练的checkpoint-4000
+- March 24, 2023：开放了使用100w条数据训练的checkpoint-8000
 
 ## 概述
 
@@ -127,8 +127,11 @@
 
 - lora模型：
 
-  - 我们提供了一个在上面混合数据上训练了大概40w条的lora模型，见 https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-3000  
-    - 由于比较小暂时直接传在github上
+  - 我们提供了一个在上面混合数据上训练的lora模型
+    - lora model
+      -  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
+      - https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-8000  
+    - 由于比较小暂时直接传在github上，后续会将更多的lora模型传在huggingface或网盘上
     - 模型使用的是8bit+lora+256 tokens
 
 - 设备：
@@ -147,9 +150,9 @@
 pip install -r requirements.txt
 ```
 
-本地的python环境是3.8，torch是1.13.1，CUDA是12
+本地的python环境是3.8，torch是1.13.1，CUDA是12，transformers是4.28.0.dev0，tokenizers是0.13.2，sentencepiece是0.1.97
 
-**训练**
+**多卡训练**
 
 ```bash
 bash finetune.sh
@@ -161,6 +164,15 @@ bash finetune.sh
   - DATA_PATH，填写对应的数据位置，格式为json
   - OUTPUT_PATH，保存模型的相对路径
   - MODEL_PATH，上游模型
+  - wandb：这是一个训练可视化工具，脚本中默认没开，可以在脚本中加入"--wandb"来开启
+
+**单卡训练**
+
+```
+python finetune.py --data_path merge.json --test_size 2000
+```
+
+- 这个test_size不能大于数据大小
 
 **inference并使用gradio生成一个网页**
 

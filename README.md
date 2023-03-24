@@ -135,7 +135,7 @@ Here, we will help you train through a very low-demand environment, with only on
     - lora models 
       - 50w data：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
       - 100w data:  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-8000  
-    - Since the model is relatively small, it is temporarily uploaded on github(about 30M)
+    - Since the model is relatively small, it is temporarily uploaded on github(about 30M).More lora models will be uploaded later on huggingface or on the BaiduDownload or Google Drive
     - The model uses 8bit+lora+256 tokens
 
 - Device：
@@ -156,7 +156,7 @@ pip install -r requirements.txt
 
 Local python environment is 3.8, torch is 1.13.1, CUDA is 12
 
-**Training**
+**Multi-gpu Training**
 
 ```bash
 bash finetune.sh
@@ -168,6 +168,15 @@ bash finetune.sh
   - DATA_PATH，fill in the corresponding data location in the format of json
   - OUTPUT_PATH，fill in the relative path to save the model
   - MODEL_PATH，path of LLM
+  - wandb：This is a training visualization tool that is not turned on by default in the script, and can be turned on by adding "--wandb" to the script
+
+**Single-gpu Training**
+
+```
+python finetune.py --data_path merge.json --test_size 2000
+```
+
+- The test_size cannot be larger than the data size
 
 **inference and use gradio to generate a web page**
 
