@@ -5,3 +5,8 @@ runs
 flagged
 checkpoint-5000*
 llama-7b*
+
+# cpp out files
+chat
+quantize
+*.o

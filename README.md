@@ -14,6 +14,7 @@ The repo contains:
 - code for finetune the model 
 - code for generation based on trained model
 - code for run on CPU (fp16 or int4 is support, in purely C++)
+- tools to download/convert original facebook llama.ckpt
 
 ## What‘s New
 
@@ -196,6 +197,12 @@ bash generate.sh
 ## **inference on CPU with pure C++**
 
 Details in `tools` [readme](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)
+
+## **More Tools**
+
+We also offer:
+- ways for faster weight download ( 8MB/s ) : [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/download_llama.sh)
+- convert tools between the original facebook checkpoint (`consolidated.xx.pth`) and huggingface format (`pytorch_model-000xx-of-000xx.bin`): [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/convert_llama.py)
 
 # todo
 

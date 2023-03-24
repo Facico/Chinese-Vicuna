@@ -192,6 +192,14 @@ bash generate.sh
 
 详情见`tools`的[readme](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)
 
+
+## **更多工具**
+
+我们还提供了:
+- 其他模型权重的下载方式 ( 更快， 8MB/s ) : [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/download_llama.sh)
+- 格式转换工具：llama系列模型参数文件的facebook格式 (`consolidated.xx.pth`) 和huggingface格式 (`pytorch_model-000xx-of-000xx.bin`): [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/convert_llama.py)
+
+
 # todo
 
 - [x] belle+guanaco(0.72 epoch, 4000 step)
