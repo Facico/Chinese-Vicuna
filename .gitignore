@@ -3,3 +3,5 @@ __pycache__/
 wandb
 runs
 flagged
+checkpoint-5000*
+llama-7b*
