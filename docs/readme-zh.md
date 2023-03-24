@@ -8,8 +8,7 @@
 
 - finetune模型的代码
 - 推理的代码
-
-
+- 仅使用CPU推理的代码 (使用C++) 
 
 ## 概述
 
@@ -38,6 +37,7 @@
 | colab link                                                   | Descriptions                                           |
 | ------------------------------------------------------------ | ------------------------------------------------------ |
 | [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1OLCJ-ZHogm5O3RdyUDY83YfgnCXdHNXp?usp=sharing) | 加载llama7B和对应的lora模型推理，并提供一个简单的webui |
+| [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1SOOJjxp02uuUFDNgm4jkvaA_IdNnnvdk?usp=sharing) | 使用我们收集的数据微调                                 |
 
 ## 模型效果
 
@@ -124,9 +124,10 @@ A：男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是�
         }
         ```
 
-  - 目前我们整合的数据可以在网盘上下载
+  - 目前我们整合的数据可以在百度网盘或google drive上下载
 
     - 链接: https://pan.baidu.com/s/1WSxuhSAotl14ifaAiz5eKw?pwd=b4kb 提取码: b4kb 
+    - 链接: https://drive.google.com/file/d/1tzXVhS74m-EtoFot7hEc005LDeZGPit_/view?usp=sharing
 
 - 上游模型：
 
@@ -143,7 +144,7 @@ A：男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是�
   - 训练：一张2080Ti即可。由于数据长度都在256以内，大概占用9G显存。
     - 70w的数据，3个epoch，一张2080Ti大概200h
   - 推理：一张2080Ti即可。
-
+  - 我们对纯CPU上推理也进行了支持，详情见[`tools`](https://github.com/Facico/Chinese-Vicuna/blob/master/tools)
   
 
 ## 怎么使用
@@ -181,13 +182,19 @@ bash generate.sh
     - 这里要注意的是，lora模型加载的config必须是"adapter_config.json"，模型名字必须是“adapter_model.bin”，不过在训练的时候会自动保存为“pytorch_model.bin”，而"adapter_config.json"和“adapter_model.bin”会在全部训练结束之后保存
       - 如果你是在训练的checkpoint中载入的lora模型，代码里会自动帮你把本地的"config-sample/adapter_config.json"复制到对应目录，并把“pytorch_model.bin”改名为“adapter_model.bin”
 
+- 使用的时候，"max_tokens"根据自己电脑的显存来设置，如果生成的内容产生了很多重复信息，可以将"Repetition Penalty"调高
+
+**仅使用CPU进行推理**
+
+详情见`tools`的[readme](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)
+
 # todo
 
 - [x] belle+guanaco(0.72 epoch, 4000 step)
-
 - [ ] belle+guanaco(100%)
 - [ ] 加入更多类似chitchat的对话型语料，增强自由对话的能力
 - [x] 增加colab训练+lora载入接口
+- [ ] 增加llama的c++推理
 
 # Citation
 
