@@ -15,6 +15,13 @@ The repo contains:
 - code for generation based on trained model
 - code for run on CPU (fp16 or int4 is support, in purely C++)
 
+## What‘s New
+
+- March 23, 2023：Released checkpoint-4000 with 50w data training
+- March 23, 2023：Deploy the code for fine-tuning and inferencing in colab
+- March 23, 2023：Provides code that can be used for inference in pure c++
+- March 24, 2023：Released checkpoint-8000 with 100w data training
+
 ## Overview
 
 -  LLaMA paper: https://arxiv.org/abs/2302.13971v1
@@ -43,51 +50,39 @@ Here, we will help you train through a very low-demand environment, with only on
 
 ## Performance
 
-```
-Q：生成一份python的排序代码
-A：def sort_list(lst):
-    lst.sort()
-    return lst
-Q：自然语言处理是什么
-A：自然语言处理是一种计算机科学领域，旨在使计算机能够理解和处理自然语言。
-Q：能给我讲一段笑话吗
-A：为什么猫吃鱼？因为它们喜欢游泳。
-Q：将下面文字翻译成英文。猫喜欢吃鱼，所以它们会游泳
-A：Cats like to eat fish, so they will swim.
-Q：233和122的和等于多少
-A：233和122的和等于355。
-Q：华为是一家怎样的公司
-A：华为是一家全球范围内最大的移动通信设备制造商之一，以及一家全球范围内最大的移动通信设备制造商之一。华为公司的业务涵盖包括移动通信设备、互联网设备、智能家居设备等。
-Q：我想和女朋友在北京约会，能推荐几个约会的地方吗
-A：北京有很多约会的地方，可以推荐以下几个约会的地方：
+**Checkpoint-4000**
 
-1. 北京艺术博物馆
-2. 颐和园
-3. 北京故宫博物馆
-4. 北京天安门广场
-5. 颐和园风景区
-Q：用python写一个二分查找的代码
-A：
-​```python
-def binary_search(arr, target):
-    low = 0
-    high = len(arr) - 1
-    while low <= high:
-        mid = (low + high) // 2
-        if arr[mid] == target:
-            return mid
-        elif arr[mid] < target:
-            low = mid + 1
-        else:
-            high = mid - 1
-    return -1
-Q：怎么让自己精力充沛，列5点建议
-A：1. 保持良好的睡眠习惯；2. 定期锻炼身体；3. 学习新技能或知识；4. 与家人和朋友交流；5. 多听放松音乐。
-Q：父母都姓吴，取一些男宝宝和女宝宝的名字
-A：男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是吴华、吴秀、吴美、吴婷等。
-```
+| Human                                            | Chinese-Vicuna                                               |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| 生成一份python的排序代码                         | A：def sort_list(lst):<br/>    lst.sort()<br/>    return lst |
+| 自然语言处理是什么                               | 自然语言处理是一种计算机科学领域，旨在使计算机能够理解和处理自然语言。 |
+| 能给我讲一段笑话吗                               | 为什么猫吃鱼？因为它们喜欢游泳。                             |
+| 将下面文字翻译成英文。猫喜欢吃鱼，所以它们会游泳 | Cats like to eat fish, so they will swim.                    |
+| 233和122的和等于多少                             | 233和122的和等于355。                                        |
+| 华为是一家怎样的公司                             | 华为是一家全球范围内最大的移动通信设备制造商之一，以及一家全球范围内最大的移动通信设备制造商之一。华为公司的业务涵盖包括移动通信设备、互联网设备、智能家居设备等。 |
+| 我想和女朋友在北京约会，能推荐几个约会的地方吗   | 北京有很多约会的地方，可以推荐以下几个约会的地方：<br/><br/>1. 北京艺术博物馆<br/>2. 颐和园<br/>3. 北京故宫博物馆<br/>4. 北京天安门广场<br/>5. 颐和园风景区 |
+| 用python写一个二分查找的代码                     | ```python<br/>def binary_search(arr, target):<br/>    low = 0<br/>    high = len(arr) - 1<br/>    while low <= high:<br/>        mid = (low + high) // 2<br/>        if arr[mid] == target:<br/>            return mid<br/>        elif arr[mid] < target:<br/>            low = mid + 1<br/>        else:<br/>            high = mid - 1<br/>    return -1 |
+| 怎么让自己精力充沛，列5点建议                    | 1. 保持良好的睡眠习惯；2. 定期锻炼身体；3. 学习新技能或知识；4. 与家人和朋友交流；5. 多听放松音乐。 |
+| 父母都姓吴，取一些男宝宝和女宝宝的名字           | 男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是吴华、吴秀、吴美、吴婷等。 |
 
-Due to the small number of training rounds so far, the effect on casual conversations is still average, but we can see that there is already a good ability. This LORA model is the result of 30 hours of training with a 2080Ti (checkpoint-3000), about 40wstep
+- This LORA model is the result of 30 hours of training with a 2080Ti (checkpoint-4000), about 50w data
+
+**Checkpoint-8000**
+
+| Human                                                        | Chinese-Vicuna                                               | Note                    |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ----------------------- |
+| 写一篇英文散文诗，主题是春雨，想象自己是春雨，和英国古代诗人莎士比亚交流 | A: Spring rain falls softly on my face,<br/>A cool breeze blows through my hair,<br/>The sun shines brightly in the sky,<br/>And I feel as if I am flying high.<br/><br/>The birds chirp happily in the trees,<br/>The flowers bloom and their scent fills the air,<br/>The bees buzz gently from flower to flower,<br/>And the world seems to come alive once more.<br/><br/>I can hear the rush of the river,<br/>The sound of the waterfalls,<br/>The splash of the raindrops on the rocks,<br/>And the gentle murmur of the stream.<br/><br/>My heart is filled with joy and peace,<br/>As I take in the beauty around me,<br/>The warmth of the sun on my skin,<br/>And the freshness of the spring air. | Repetition Penalty=2.2  |
+| 写一篇英文散文诗，主题是春雨，想象自己是春雨，和英国古代诗人莎士比亚交流 | 春雨滴滴滚滚，<br/>滚滚滚滚滚滚。<br/>滚滚滚滚滚滚，<br/>滚滚滚滚滚滚。<br/><br/>春雨滚滚滚，<br/>滚滚滚滚滚滚。<br/>滚滚滚滚滚滚，<br/>滚滚滚滚滚滚。<br/><br/>春雨滚滚滚，<br/>滚滚滚滚滚滚。<br/>滚滚滚滚滚滚，<br/>滚滚滚滚滚滚。<br/><br/>春雨滚滚滚，<br/>滚滚滚 | Repetition Penalty=1.0  |
+| Spring rain falls softly on my face,<br/>A cool breeze blows through my hair,<br/>The sun shines brightly in the sky,<br/>And I feel as if I am flying high.<br/><br/>The birds chirp happily in the trees,<br/>The flowers bloom and their scent fills the air,<br/>The bees buzz gently from flower to flower,<br/>And the world seems to come alive once more.<br/><br/>I can hear the rush of the river,<br/>The sound of the waterfalls,<br/>The splash of the raindrops on the rocks,<br/>And the gentle murmur of the stream.<br/><br/>My heart is filled with joy and peace,<br/>As I take in the beauty around me,<br/>The warmth of the sun on my skin,<br/>And the freshness of the spring air.<br/>把上面的散文诗翻译成中文 | 春雨轻轻洒落在我的脸上，<br/>轻轻的风轻轻吹过我的头发，<br/>阳光明媚地照耀在天空，<br/>我感觉自己在飞高。<br/><br/>鸟儿在树枝上唱歌，<br/>花朵开放，它们的香气充满了空气，<br/>蜜蜂在花朵间飞舞，<br/>它们的鸣声充满了温暖。<br/><br/>我听到河流的声音，<br/>水瀑在岩石上轻轻滴滴，<br/>雨水在石头上轻轻滴滴，<br/>它们的声音充满了宁静。<br/><br/>我的心充满了喜悦和平，<br/>我感受到热浪的阳光，<br/>温暖的空气洒在我的脸上，<br/>我感受到春季的美 | beams=2，max tokens=350 |
+| Classify the sentiment of the following sentence into Positive, Neutral, or Negative:<br/>Super excited about teaching Stanford’s first course on Large Language Models! Check the syllabus out here | Positive                                                     |                         |
+| 今天天气怎么样，把这句话翻译成英语                           | What's the weather like today?                               |                         |
+| 今天天气怎么样，把这句话翻译成日语                           | 今天の天気は何ですか？                                       |                         |
+| 明天就假期结束了，有点抗拒上班，应该什么办？                 | 明天就假期结束了，有点抗拒上班，应该什么办？可以考虑一些有趣的活动，比如去看电影、阅读书籍、听音乐、去游泳池或者参加户外活动等。此外，也可以考虑一些家庭活动，比如做烹饪、做玩具、做手工艺品等。 |                         |
+| Tell me five words that rhyme with 'shock'.                  | Five words that rhyme with'shock' are: <br/>1. Rock <br/>2. Lock <br/>3. Cock <br/>4. Hock <br/>5. Stock |                         |
+
+- We can find that you do not punish him a little, he will mess up, if the generation effect is not good, you can increase the Repetition Penalty, beams, topk.
+- If your input is long, we suggest you can turn down the beams
+- The current model has some Japanese language skills, but not strong
 
 ## What we need?
 
@@ -136,7 +131,10 @@ Due to the small number of training rounds so far, the effect on casual conversa
 
 - LORA model：
 
-  - We provide a lora model trained on the above mixed data with roughly 50w entries, see https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
+  - We provide some lora models trained on the above mixed data,
+    - lora models 
+      - 50w data：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
+      - 100w data:  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-8000  
     - Since the model is relatively small, it is temporarily uploaded on github(about 30M)
     - The model uses 8bit+lora+256 tokens
 
@@ -146,8 +144,6 @@ Due to the small number of training rounds so far, the effect on casual conversa
     - 70w of data, 3 epochs, a 2080Ti about 200h
   - Inference：A 2080Ti is all you need。
   - CPU Inference is also support! please go to see [`tools`](https://github.com/Facico/Chinese-Vicuna/blob/master/tools)
-
-  
 
 ## How to use
 
@@ -188,16 +184,17 @@ bash generate.sh
 
 - When using, "max_tokens" is set according to your computer's video memory, and if the generated content generates a lot of duplicate information, you can turn up the "Repetition Penalty".
 
-**inference only use CPU**
+## **inference on CPU with pure C++**
 
 Details in `tools` [readme](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)
 
 # todo
 
-- [x] belle+guanaco(0.72 epoch, 4000 step)
+- [x] belle+guanaco(1.5 epoch, 8000 step)
 - [ ] belle+guanaco(100%)
 - [ ] Add more chitchat-like conversational corpus to enhance free conversation
 - [x] Add colab training + lora loading interface
+- [ ] Add the interaction capabilities
 - [x] Add llama c++ inference
 
 # Citation
