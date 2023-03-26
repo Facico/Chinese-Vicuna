@@ -10,3 +10,7 @@ llama-7b*
 chat
 quantize
 *.o
+*.a
+cmake_install.cmake
+CMakeFiles
+CMakeCache.txt

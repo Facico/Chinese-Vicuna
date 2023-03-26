@@ -18,7 +18,7 @@ python tools/convert_pth_to_ggml.py
 3. next, go to the `vicuna.cpp` directory and start to chat pure in CPU & C++ !
 ```bash
 cd tools/vicuna.cpp
-make chat
+make chat # we also offer a Makefile.ref, which you can call it with `make -f Makefile.ref `
 ./chat -m $ggml-path
 ```
 [Optional] you can convert above ggml to int4 (`ggml-model-q4_0.bin`) and use it in chat,  (but the performance is worse)
