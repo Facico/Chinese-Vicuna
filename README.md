@@ -14,7 +14,7 @@ The repo contains:
 - code for finetune the model 
 - code for generation based on trained model
 - code for run on CPU (fp16 or int4 is support, in purely C++)
-- tools to download/convert original facebook llama.ckpt
+- tools to download/convert/quantify original facebook llama.ckpt
 
 ## What‘s New
 
@@ -22,7 +22,7 @@ The repo contains:
 - March 23, 2023：Deploy the code for fine-tuning and inferencing in colab
 - March 23, 2023：Provides code that can be used for inference in pure c++
 - March 24, 2023：Released checkpoint-8000 with 100w data training
-- March 26, 2023:Provides a quantitative approach
+- March 26, 2023：Provides a quantitative approach
 ## Overview
 
 -  LLaMA paper: https://arxiv.org/abs/2302.13971v1
@@ -205,7 +205,7 @@ Details in `tools` [readme](https://github.com/Facico/Chinese-Vicuna/blob/master
 We also offer:
 - ways for faster weight download ( 8MB/s ) : [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/download_llama.sh)
 - convert tools between the original facebook checkpoint (`consolidated.xx.pth`) and huggingface format (`pytorch_model-000xx-of-000xx.bin`): [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/convert_llama.py)
-- a quantitative approach that requires less than 4G graphics memory for inference.
+- a quantitative approach that requires less than 4G graphics memory for inference: [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/llama_quant.py)
 
 # todo
 
