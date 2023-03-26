@@ -25,8 +25,9 @@ extra requirements:
 
 # reload the model: no int8
 version = 'finetune_0.pt'
-tokenizer = AutoTokenizer.from_pretrained("/model/chatglm-6b", trust_remote_code=True)
-model = AutoModel.from_pretrained("/model/chatglm-6b", trust_remote_code=True)
+model_dir = '/model/chatglm-6b'
+tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)
+model = AutoModel.from_pretrained(model_dir, trust_remote_code=True)
 config = LoraConfig(
     peft_type="LORA", 
     task_type="SEQ_2_SEQ_LM", 
@@ -71,7 +72,7 @@ for key, module in model.named_modules():
         module.query_key_value = peft.tuners.lora.LoraModel(config, module.query_key_value)
 
 # load the LoRA checkpoint
-model.load_state_dict(torch.load(f'/model/{version}'), strict=False)
+model.load_state_dict(torch.load(f'/{model_dir}/{version}'), strict=False)
 model.half().cuda().eval()
 
 # Let's chat!
