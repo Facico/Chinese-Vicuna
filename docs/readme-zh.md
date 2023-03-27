@@ -9,6 +9,7 @@
 - finetune模型的代码
 - 推理的代码
 - 仅使用CPU推理的代码 (使用C++) 
+- 下载/转换/量化Facebook llama.ckpt的工具
 
 ## What‘s New
 
@@ -16,7 +17,7 @@
 - March 23, 2023：在colab上部署了fine-tuning和inference的代码
 - March 23, 2023：提供了使用纯C++在CPU上进行推理的方案
 - March 24, 2023：开放了使用100w条数据训练的checkpoint-8000
-
+- March 26, 2023：提供了LLaMA模型的量化方法
 ## 概述
 
 相关技术
@@ -192,6 +193,14 @@ bash generate.sh
 
 详情见`tools`的[readme](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)
 
+
+## **更多工具**
+
+我们还提供了:
+- 其他模型权重的下载方式 ( 更快， 8MB/s ) : [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/download_llama.sh)
+- 格式转换工具：llama系列模型参数文件的facebook格式 (`consolidated.xx.pth`) 和huggingface格式 (`pytorch_model-000xx-of-000xx.bin`): [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/convert_llama.py)
+- LLaMA量化：将模型量化为8bit、4bit、2bit的工具 (`gptq`) : [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/llama_quant.py)
+
 # todo
 
 - [x] belle+guanaco(0.72 epoch, 4000 step)
@@ -200,6 +209,7 @@ bash generate.sh
 - [x] 增加colab训练+lora载入接口
 - [ ] Add the interaction capabilities
 - [x] 增加llama的c++推理
+- [x] 增加gptq模型量化方法
 
 # Citation
 
