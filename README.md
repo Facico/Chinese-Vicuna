@@ -257,7 +257,7 @@ When installing and using this project, some problems may be encountered, and th
 - [x] belle+guanaco(100%)
 - [ ] Add more chitchat-like conversational corpus to enhance free conversation
 - [x] Add colab training + lora loading interface
-- [ ] Add the interaction capabilities
+- [x] Add the interaction capabilities
 - [x] Add llama c++ inference
 - [x] Add gptq quantification tools
 
