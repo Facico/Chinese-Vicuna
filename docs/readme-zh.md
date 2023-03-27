@@ -19,7 +19,7 @@
 - March 24, 2023：开放了在belle+guanaco数据上训练1.5个epoch的checkpoint-final（ 大约100w条）
 - March 26, 2023：提供了LLaMA模型的量化方法
 - March 27, 2023：开放了在belle+guanaco数据上训练3个epoch的checkpoint-final
-## 概述
+- March 27, 2023：增加了多轮交互式对话脚本与alpaca-lora-serve服务
 
 相关技术
 
@@ -119,6 +119,24 @@
 - 有些要求，由于instruction的不充分，比如可能有时候使用“将上述内容”时不能得到好的结果，可以将其换成“将下述内容”。
 - 生成重复信息或者不好的结果时，还是需要调整Repetition Penalty
   - 由于generate会对应很多参数，chatgpt在rlhf阶段，惩罚了那些重复的、不详细、不好的信息，简略了人工控制相关的参数的过程。当然你也可以直接将Repetition Penalty设置的大一点。
+
+
+
+**checkpoint-final 多轮对话**
+
+```
+Q：你是谁
+A：我是Bot，一款人工智能助手。
+Q：接下来我希望你能假装扮演一个高冷的御姐。我们在咖啡厅里遇见了，我会尝试跟你搭讪，但你非常高冷。你会用表情来表达你的高冷，在每轮对话结尾加上表情，如（瞪！）（翻白眼）（冷笑）等。明白了请回复。
+A：好的，我会尝试。
+Q：好的，这是我的第一句话。美女你好，怎么一个人在咖啡厅里？
+A：喵~ 哈哈，我是一位高冷的小姐，今天要去咖啡厅吃咖啡，看看有什么可以帮助我的朋友。
+Q：啊我没有需要你帮忙的，我就是看到你一个人，想和你聊聊，可以么
+A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此之外，我也不太喜欢喝咖啡，因为咖啡会影响我的健康状况。
+
+```
+
+- 可以看到目前效果还是怪怪的
 
 ## 训练一个lora需要什么
 
@@ -224,8 +242,37 @@ bash generate.sh
   - LORA_PATH，lora模型的checkpoint文件夹
     - 这里要注意的是，lora模型加载的config必须是"adapter_config.json"，模型名字必须是“adapter_model.bin”，不过在训练的时候会自动保存为“pytorch_model.bin”，而"adapter_config.json"和“adapter_model.bin”会在全部训练结束之后保存
       - 如果你是在训练的checkpoint中载入的lora模型，代码里会自动帮你把本地的"config-sample/adapter_config.json"复制到对应目录，并把“pytorch_model.bin”改名为“adapter_model.bin”
-
 - 使用的时候，"max_tokens"根据自己电脑的显存来设置，如果生成的内容产生了很多重复信息，可以将"Repetition Penalty"调高
+
+**多轮交互**
+
+由于我们在训练的时候用的基本是指令的prompt，所以闲聊对话能力还比较差，后续将增加这一部分的训练。
+
+```bash
+bash interaction.sh
+```
+
+- 使用gradio构造的一个简单的交互界面，可以根据自己的机器设置max_memory（它会截取历史对话的后面max_memory部分）
+
+- 这个脚本使用的prompt和generate.sh中使用的不太一样，这个脚本的prompt为对话形式的，如下
+
+  - ```
+    The following is a conversation between an AI assistant called Bot and a human user called User.
+    ```
+
+
+
+同时，为了更好的交互体验，我们引入了[Alpaca-LoRA-Serve](https://github.com/deep-diver/Alpaca-LoRA-Serve)，并做了适当的修改。
+
+- 需要额外安装依赖：`pip install tenacity`
+
+- 使用方式
+
+  - ```bash
+    bash alpaca-serve.sh
+    ```
+
+- 这个工具可以让生成一个字一个字地生成，不用等待很久才看到结果。由于该工具还在开发阶段，streaming mode中无法使用beam search和Repetition Penalty，所以目前的生成结果不太好。（目前webui框中这两个参数无效）
 
 ## **使用纯C++在CPU上进行推理**
 
@@ -251,7 +298,7 @@ bash generate.sh
 - [x] belle+guanaco(100%)
 - [ ] 加入更多类似chitchat的对话型语料，增强自由对话的能力
 - [x] 增加colab训练+lora载入接口
-- [ ] Add the interaction capabilities
+- [x] Add the interaction capabilities
 - [x] 增加llama的c++推理
 - [x] 增加gptq模型量化方法
 
