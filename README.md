@@ -245,6 +245,12 @@ We also offer:
 - convert tools between the original facebook checkpoint (`consolidated.xx.pth`) and huggingface format (`pytorch_model-000xx-of-000xx.bin`): [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/convert_llama.py)
 - a quantitative approach that requires less than 4G graphics memory for inference: [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/llama_quant.py)
 
+## Possible problems encountered
+
+When installing and using this project, some problems may be encountered, and the various problems encountered so far are summarized as follows:
+
+[Problems](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/problems.md)
+
 # todo
 
 - [x] belle+guanaco(1.5 epoch, 8000 step)

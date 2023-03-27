@@ -239,6 +239,12 @@ bash generate.sh
 - 格式转换工具：llama系列模型参数文件的facebook格式 (`consolidated.xx.pth`) 和huggingface格式 (`pytorch_model-000xx-of-000xx.bin`): [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/convert_llama.py)
 - LLaMA量化：将模型量化为8bit、4bit、2bit的工具 (`gptq`) : [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/llama_quant.py)
 
+## 可能会遇到的问题
+
+在安装并使用本项目时，可能会遇到一些问题，目前遇到的各种问题总结如下：
+
+[Problems](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/problems.md)
+
 # todo
 
 - [x] belle+guanaco(0.72 epoch, 4000 step)
