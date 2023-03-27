@@ -31,24 +31,24 @@ make quantize
 Provides a quantitative approach that allows you to use the LLaMA-7B model for inference on devices with less than 4G graphics memory.
 Referring to the previous study [pyllama](https://github.com/juncongmoo/pyllama).
 you need to install gptq with pip install gptq>=0.0.2 command.
-### 1. first you need to convert model as huggingface model  by:
+### 1. first, you need to convert the model to huggingface model:
 ```bash 
-python --ckpt_dir LLaMA_7B --tokenizer_path LLaMA_7B/tokenizer.model --output_dir LLaMA_7B_hf --to hf
+python convert_llama.py --ckpt_dir LLaMA_7B --tokenizer_path LLaMA_7B/tokenizer.model --model_size 7B --output_dir LLaMA_7B_hf --to hf
 ```
 ### 2. then, quantitative Model:
 - Quantize 7B model to 8-bit
 ```bash
-python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 8 --save pyllama-7B8b.pt
+python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 8 --save pyllama-7B8b.pt --eval
 ```
 
 - Quantize 7B model to 4-bit with groupsize 128 (the recommended setup 🔥)
 ```bash
-python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 4 --groupsize 128 --save pyllama-7B4b.pt
+python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 4 --groupsize 128 --save pyllama-7B4b.pt --eval
 ```
 
 - Quantize 7B model to 2-bit
 ```bash
-python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 2 --save pyllama-7B2b.pt
+python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 2 --save pyllama-7B2b.pt --eval
 ```
 ### 3. finally, inference and use gradio to generate a web page:
 ```bash

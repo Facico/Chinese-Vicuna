@@ -171,46 +171,46 @@ def main():
         return output.split("### Response:")[1].strip()
 
 
-    gr.Interface(
-        fn=evaluate,
-        inputs=[
-            gr.components.Textbox(
-                lines=2, label="Input", placeholder="Tell me about alpacas."
-            ),
-            gr.components.Slider(minimum=0, maximum=1, value=0.1, label="Temperature"),
-            gr.components.Slider(minimum=0, maximum=1, value=0.75, label="Top p"),
-            gr.components.Slider(minimum=0, maximum=100, step=1, value=40, label="Top k"),
-            gr.components.Slider(minimum=1, maximum=5, step=1, value=1, label="Beams"),
-            gr.components.Slider(
-                minimum=1, maximum=2000, step=1, value=256, label="Max tokens"
-            ),
-            gr.components.Slider(
-                minimum=0.1, maximum=10.0, step=0.1, value=1.0, label="Repetition Penalty"
-            ),
-        ],
-        outputs=[
-            gr.inputs.Textbox(
-                lines=5,
-                label="Output",
-            )
-        ],
-        title="Chinese-Vicuna 中文小羊驼",
-        description="中文小羊驼由各种高质量的开源instruction数据集，结合Alpaca-lora的代码训练而来，模型基于开源的llama7B，主要贡献是对应的lora模型。由于代码训练资源要求较小，希望为llama中文lora社区做一份贡献。",
-    ).launch(share=True)
+    # gr.Interface(
+    #     fn=evaluate,
+    #     inputs=[
+    #         gr.components.Textbox(
+    #             lines=2, label="Input", placeholder="Tell me about alpacas."
+    #         ),
+    #         gr.components.Slider(minimum=0, maximum=1, value=0.1, label="Temperature"),
+    #         gr.components.Slider(minimum=0, maximum=1, value=0.75, label="Top p"),
+    #         gr.components.Slider(minimum=0, maximum=100, step=1, value=40, label="Top k"),
+    #         gr.components.Slider(minimum=1, maximum=5, step=1, value=1, label="Beams"),
+    #         gr.components.Slider(
+    #             minimum=1, maximum=2000, step=1, value=256, label="Max tokens"
+    #         ),
+    #         gr.components.Slider(
+    #             minimum=0.1, maximum=10.0, step=0.1, value=1.0, label="Repetition Penalty"
+    #         ),
+    #     ],
+    #     outputs=[
+    #         gr.inputs.Textbox(
+    #             lines=5,
+    #             label="Output",
+    #         )
+    #     ],
+    #     title="Chinese-Vicuna 中文小羊驼",
+    #     description="中文小羊驼由各种高质量的开源instruction数据集，结合Alpaca-lora的代码训练而来，模型基于开源的llama7B，主要贡献是对应的lora模型。由于代码训练资源要求较小，希望为llama中文lora社区做一份贡献。",
+    # ).launch(share=True)
 
-    # input_ids = tokenizer.encode("Aplaca is ", return_tensors="pt").to(device)
+    input_ids = tokenizer.encode("The mean of life is ", return_tensors="pt").to(device)
 
-    # with torch.no_grad():
-    #     generated_ids = model.generate(
-    #         input_ids,
-    #         do_sample=True,
-    #         min_length=10,
-    #         max_length=36,
-    #         top_p=0.95,
-    #         temperature=0.8
-    #     )
-    # print("*"*80)
-    # print("🦙:", tokenizer.decode([el.item() for el in generated_ids[0]]))
+    with torch.no_grad():
+        generated_ids = model.generate(
+            input_ids,
+            do_sample=True,
+            min_length=10,
+            max_length=36,
+            top_p=0.95,
+            temperature=0.8
+        )
+    print("*"*80)
+    print("🦙:", tokenizer.decode([el.item() for el in generated_ids[0]]))
 
 
 if __name__ == '__main__':
