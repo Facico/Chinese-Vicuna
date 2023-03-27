@@ -1,13 +1,13 @@
-This directory offers tools for Vicuna model :
-1. to run on CPU (in pure C/C++).
-2. quantize the model to 2bit, 4bit, 6bit, 8bit.
+本目录主要提供Vicuna model相关的工具:
+1. 使用纯C++推理
+2. 使用GPTQ量化到2bit, 4bit, 6bit, 8bit.
 ---
-## Run on CPU (in pure C/C++)
-Thanks to the prior work from [Llama.cpp](https://github.com/ggerganov/llama.cpp) and [Alpaca.cpp](https://github.com/antimatter15/alpaca.cpp)
-Notice that:
-   - Here are the steps after you have trained a Vicuna lora checkpoint in `lora_path`.
-   - The merged model cost 13G disk space for 7B, 37G for 13B, 30B and 65B we haven't test yet due to the limited hardware. Notice that the convertion of model is on cpu and needs large RAM ( peak memory > 64G for 13B, you may need to increase swap size)
-   - By default, the 7B,13B,30B,65B checkpoint will be splited into 1,2,4,8 parts during the conversation ( which is fixed in cpp )
+## 使用纯C++推理
+感谢之前的工作： [Llama.cpp](https://github.com/ggerganov/llama.cpp) 、 [Alpaca.cpp](https://github.com/antimatter15/alpaca.cpp), 请注意
+
+   - 这里的步骤应该在你训练完了lora再进行.
+   - 合并后的checkpoint对于7B模型大概消耗13G磁盘空间，对于13B模型大概消耗37G, 30B和65B由于我们有限的设备条件没有测试. 注意在转换过程中会消耗很大的内存 ( 比如13B可能超过64G，但你可以通过提高swap空间解决 )
+   - 另外， 7B,13B,30B,65B的checkpoint分别默认被分成1,2,4,8片 ( 这也是cpp里边固定的设置 )
 
 1. First you need to merge your lora parameter with original base model and convert them to  `ggml` format for cpp inference.
 ```

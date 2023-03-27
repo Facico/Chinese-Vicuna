@@ -48,19 +48,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /home/cciip/miniconda3/lib/python3.10/site-packages/cmake/data/bin/cmake
+CMAKE_COMMAND = /home/tianjie/anaconda3/envs/trl/lib/python3.8/site-packages/cmake/data/bin/cmake
 
 # The command to remove a file.
-RM = /home/cciip/miniconda3/lib/python3.10/site-packages/cmake/data/bin/cmake -E rm -f
+RM = /home/tianjie/anaconda3/envs/trl/lib/python3.8/site-packages/cmake/data/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/cciip/private/lzy/Chinese-Vicuna/tools/vicuna.cpp
+CMAKE_SOURCE_DIR = /home/tianjie/Documents/DialogueGeneration/trl/Chinese-Vicuna/tools/vicuna.cpp
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/cciip/private/lzy/Chinese-Vicuna/tools/vicuna.cpp
+CMAKE_BINARY_DIR = /home/tianjie/Documents/DialogueGeneration/trl/Chinese-Vicuna/tools/vicuna.cpp
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -68,7 +68,7 @@ CMAKE_BINARY_DIR = /home/cciip/private/lzy/Chinese-Vicuna/tools/vicuna.cpp
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/home/cciip/miniconda3/lib/python3.10/site-packages/cmake/data/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+	/home/tianjie/anaconda3/envs/trl/lib/python3.8/site-packages/cmake/data/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -78,7 +78,7 @@ edit_cache/fast: edit_cache
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/home/cciip/miniconda3/lib/python3.10/site-packages/cmake/data/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/home/tianjie/anaconda3/envs/trl/lib/python3.8/site-packages/cmake/data/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/cciip/private/lzy/Chinese-Vicuna/tools/vicuna.cpp/CMakeFiles /home/cciip/private/lzy/Chinese-Vicuna/tools/vicuna.cpp//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/tianjie/Documents/DialogueGeneration/trl/Chinese-Vicuna/tools/vicuna.cpp/CMakeFiles /home/tianjie/Documents/DialogueGeneration/trl/Chinese-Vicuna/tools/vicuna.cpp//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/cciip/private/lzy/Chinese-Vicuna/tools/vicuna.cpp/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/tianjie/Documents/DialogueGeneration/trl/Chinese-Vicuna/tools/vicuna.cpp/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
