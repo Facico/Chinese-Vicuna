@@ -5,7 +5,6 @@ runs
 flagged
 checkpoint-5000*
 llama-7b*
-interaction.py
 
 # cpp out files
 chat
