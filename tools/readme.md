@@ -4,34 +4,28 @@ This directory offers tools for Vicuna model :
 ---
 ## Run on CPU (in pure C/C++)
 Thanks to the prior work from [Llama.cpp](https://github.com/ggerganov/llama.cpp) and [Alpaca.cpp](https://github.com/antimatter15/alpaca.cpp)
-Notice that:
-   - Here are the steps after you have trained a Vicuna lora checkpoint in `lora_path`.
-   - The merged model cost 13G disk space for 7B, 37G for 13B, 30B and 65B we haven't test yet due to the limited hardware. Notice that the convertion of model is on cpu and needs large RAM ( peak memory > 64G for 13B, you may need to increase swap size)
-   - By default, the 7B,13B,30B,65B checkpoint will be splited into 1,2,4,8 parts during the conversation ( which is fixed in cpp )
 
-1. First you need to merge your lora parameter with original base model and convert them to  `ggml` format for cpp inference.
-```
-bash prepare_llama_cpp.sh
-```
- ( Currently in our code, it will first convert hf model & lora to a merged `consolidated.0x.pth`, where `x` corresponding to num_shards, and convert them to `ggml-model-f16.bin` )
+Here are the steps if you have trained a Vicuna lora checkpoint in `lora_path` ( When using 7B model, it will get 13G merge model checkpoint and ggml checkpoint so we don't upload them.):
+
+1. first you need to merge your lora parameter with original base model (e.g. `decapoda-research/llama-7b-hf`) and save a merged `pytorch_model.bin` from root directory. normally you will get `consolidated.00.pth` and `params.json` in output dir
 ```bash 
 python tools/merge_lora_for_cpp.py --lora_path $lora_path
 ```
-
-1. next, go to the `vicuna.cpp` directory and start to chat pure in CPU & C++ !
+2. then, convert above saved `pytorch_model.bin` to ggml format, by default get `ggml-model-f16.bin` in the same dir as `pytorch_model.bin`
+```bash
+python tools/convert_pth_to_ggml.py 
+```
+3. next, go to the `vicuna.cpp` directory and start to chat pure in CPU & C++ !
 ```bash
 cd tools/vicuna.cpp
-make chat 
-# we also offer a Makefile.ref, which you can call it with `make -f Makefile.ref `
+make chat # we also offer a Makefile.ref, which you can call it with `make -f Makefile.ref `
 ./chat -m $ggml-path
-
 ```
 [Optional] you can convert above ggml to int4 (`ggml-model-q4_0.bin`) and use it in chat,  (but the performance is worse)
 ```bash
 make quantize
 ./quantize.sh
 ```
-
 ---
 ## Quantize LLaMA
 Provides a quantitative approach that allows you to use the LLaMA-7B model for inference on devices with less than 4G graphics memory.
@@ -68,9 +62,6 @@ python generate_quant.py \
 The inference with 7B 2bit model requires only 3.8GB GPU memory when beam search is set to  1.
 
 ---
-
-
 TODO:
-- [ ] fix `merge_lora.py` too much space occupation. 
-- [ ] fix segmentation fault error due to the fixed `n_ctx` in original code.
 - [ ] speedup cpu inference.
+- [ ] fix segmentation fault error.

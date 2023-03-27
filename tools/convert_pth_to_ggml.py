@@ -35,8 +35,6 @@ parser.add_argument("--dir_out",type=str, default=None)
 parser.add_argument("--fname_tokenizer", type=str, default="lora-Vicuna/llama-7b/tokenizer.model")
 # 0=fp32, 1=fp16
 parser.add_argument("--ftype", type=int, default=1)
-# NOTE: this parameter is n_parts split of the `consolidated.0x` checkpoint
-parser.add_argument("--shard", type=int, default=None)
 args = parser.parse_args()
 
 if args.dir_out is None: dir_out = args.dir_model # output in the same directory as the model
@@ -46,12 +44,29 @@ ftype=args.ftype
 fname_tokenizer=args.fname_tokenizer
 fname_hparams   = dir_model + "/params.json"
 
+def get_n_parts(dim):
+    if dim == 4096:
+        return 1
+    elif dim == 5120:
+        return 2
+    elif dim == 6656:
+        return 4
+    elif dim == 8192:
+        return 8
+    else:
+        print("Invalid dim: " + str(dim))
+        sys.exit(1)
+
 # possible data types
 #   ftype == 0 -> float32
 #   ftype == 1 -> float16
 #
 # map from ftype to string
 ftype_str = ["f32", "f16"]
+
+if len(sys.argv) > 2:
+    ftype = int(sys.argv[2])
+
 if ftype < 0 or ftype > 1:
     print("Invalid ftype: " + str(ftype))
     sys.exit(1)
@@ -68,23 +83,7 @@ tokenizer = SentencePieceProcessor(fname_tokenizer)
 
 hparams.update({"vocab_size": tokenizer.vocab_size()})
 
-def get_n_parts(dim):
-    if dim == 4096:
-        return 1
-    elif dim == 5120:
-        return 2
-    elif dim == 6656:
-        return 4
-    elif dim == 8192:
-        return 8
-    else:
-        print("Invalid dim: " + str(dim))
-        sys.exit(1)
-
-if args.shard is None: # default
-    n_parts = get_n_parts(hparams["dim"])
-else:
-    n_parts = args.shard
+n_parts = get_n_parts(hparams["dim"])
 
 print(hparams)
 print('n_parts = ', n_parts)
