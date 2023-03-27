@@ -7,6 +7,9 @@ checkpoint-5000*
 llama-7b*
 interaction.py
 
+# chatglm
+outs
+
 # cpp out files
 chat
 quantize
