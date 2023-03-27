@@ -24,6 +24,10 @@ The repo contains:
 - March 24, 2023：Released checkpoint-8000 for training about 1.5 epochs on belle+guanaco（100w data）
 - March 26, 2023：Provides a quantitative approach
 - March 27, 2023：Released  checkpoint-final for training 3 epochs on belle+guanaco
+- March 27, 2023：Added multi-round interactive dialog script with alpaca-lora-serve service
+
+
+
 ## Overview
 
 -  LLaMA paper: https://arxiv.org/abs/2302.13971v1
@@ -121,6 +125,23 @@ Here, we will help you train through a very low-demand environment, with only on
 - For example, sometimes you may not get a good result when you use "the above", so you can replace it with "the following".
 - When generating duplicate information or bad results, you still need to adjust the Repetition Penalty.
   - Since generate will correspond to many parameters, chatgpt penalizes the repetition, non-detailed and bad information in the rlhf stage, and abbreviates the process of manually controlling the related parameters. Of course you can also directly set the Repetition Penalty to a larger size.
+
+
+
+**checkpoint-final: Multiple rounds of dialogue**
+
+```
+Q：你是谁
+A：我是Bot，一款人工智能助手。
+Q：接下来我希望你能假装扮演一个高冷的御姐。我们在咖啡厅里遇见了，我会尝试跟你搭讪，但你非常高冷。你会用表情来表达你的高冷，在每轮对话结尾加上表情，如（瞪！）（翻白眼）（冷笑）等。明白了请回复。
+A：好的，我会尝试。
+Q：好的，这是我的第一句话。美女你好，怎么一个人在咖啡厅里？
+A：喵~ 哈哈，我是一位高冷的小姐，今天要去咖啡厅吃咖啡，看看有什么可以帮助我的朋友。
+Q：啊我没有需要你帮忙的，我就是看到你一个人，想和你聊聊，可以么
+A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此之外，我也不太喜欢喝咖啡，因为咖啡会影响我的健康状况。
+```
+
+- You can see that the current effect is still strange
 
 ## What we need?
 
@@ -231,8 +252,39 @@ bash generate.sh
   - LORA_PATH，The checkpoint folder of the lora model
     - It should be noted here that the config loaded by the lora model must be "adapter_config.json" and the model name must be "adapter_model.bin", but it will be automatically saved as "pytorch_model.bin" during training. pytorch_model.bin" during training, while "adapter_config.json" and "adapter_model.bin" will be saved after all training is finished
       - If you load the lora model in the training checkpoint, the code will automatically copy the local "config-sample/adapter_config.json" to the corresponding directory for you and rename the "pytorch_model.bin" to "adapter_model.bin". and rename "pytorch_model.bin" to "adapter_model.bin".
-
 - When using, "max_tokens" is set according to your computer's video memory, and if the generated content generates a lot of duplicate information, you can turn up the "Repetition Penalty".
+
+
+
+**Multi-round interaction**
+
+As we use the basic command prompt when training, so the ability of small talk conversation is still relatively poor, the follow-up will increase this part of the training.
+
+```bash
+bash interaction.sh
+```
+
+- A simple interactive interface constructed using gradio, which allows you to set the max_memory according to your machine (it will intercept the max_memory part later in the history conversation)
+
+- The prompt used in this script is not quite the same as the one used in generate.sh. The prompt in this script is in the form of a dialogue, as follows
+
+  - ```
+    The following is a conversation between an AI assistant called Bot and a human user called User.
+    ```
+
+
+
+At the same time, we introduced [Alpaca-LoRA-Serve](https://github.com/deep-diver/Alpaca-LoRA-Serve) for better interaction experience and made appropriate modifications.
+
+- Additional dependencies to be installed:`pip install tenacity`
+
+- Usage
+
+  - ```bash
+    bash alpaca-serve.sh
+    ```
+
+- This tool allows generating word by word without having to wait long to see the results. Since the tool is still in the development stage, beam search and Repetition Penalty are not available in streaming mode, so the current generation results are not very good. (Currently these two parameters are not valid in the webui box)
 
 ## **inference on CPU with pure C++**
 
@@ -257,7 +309,7 @@ When installing and using this project, some problems may be encountered, and th
 - [x] belle+guanaco(100%)
 - [ ] Add more chitchat-like conversational corpus to enhance free conversation
 - [x] Add colab training + lora loading interface
-- [ ] Add the interaction capabilities
+- [x] Add the interaction capabilities
 - [x] Add llama c++ inference
 - [x] Add gptq quantification tools
 
