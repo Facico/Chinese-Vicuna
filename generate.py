@@ -105,6 +105,10 @@ class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
             generation_config.max_length = (
                 generation_config.max_new_tokens + input_ids_seq_length
             )
+        if generation_config.min_new_tokens is not None:
+            generation_config.min_length = (
+                generation_config.min_new_tokens + input_ids_seq_length
+            )
 
         if input_ids_seq_length >= generation_config.max_length:
             input_ids_string = (
@@ -420,6 +424,7 @@ def evaluate(
     top_k=40,
     num_beams=4,
     max_new_tokens=128,
+    min_new_tokens=1,
     repetition_penalty=2.0,
     **kwargs,
 ):
@@ -434,22 +439,28 @@ def evaluate(
         bos_token_id=1,
         eos_token_id=2,
         pad_token_id=0,
+        max_new_tokens=max_new_tokens, # max_length=max_new_tokens+input_sequence
+        min_new_tokens=min_new_tokens, # min_length=min_new_tokens+input_sequence
         **kwargs,
     )
     with torch.no_grad():
+        last_show_text = ''
         for generation_output in model.stream_generate(
             input_ids=input_ids,
             generation_config=generation_config,
             return_dict_in_generate=True,
-            output_scores=True,
-            max_new_tokens=max_new_tokens,
+            output_scores=False,
             repetition_penalty=float(repetition_penalty),
         ):
             outputs = tokenizer.batch_decode(generation_output)
-            yield "\n--------------------------------------------\n".join(
-                [output.split("### Response:")[1].strip() for output in outputs]
+            show_text = "\n--------------------------------------------\n".join(
+                [output.split("### Response:")[1].strip().replace('�','') for output in outputs]
             )
-
+            # if show_text== '':
+            #     yield last_show_text
+            # else:
+            yield show_text
+            last_show_text = outputs[0].split("### Response:")[1].strip().replace('�','')
 
 gr.Interface(
     fn=evaluate,
@@ -460,9 +471,12 @@ gr.Interface(
         gr.components.Slider(minimum=0, maximum=1, value=0.1, label="Temperature"),
         gr.components.Slider(minimum=0, maximum=1, value=0.75, label="Top p"),
         gr.components.Slider(minimum=0, maximum=100, step=1, value=40, label="Top k"),
-        gr.components.Slider(minimum=1, maximum=5, step=1, value=4, label="Beams"),
+        gr.components.Slider(minimum=1, maximum=10, step=1, value=4, label="Beams Number"),
         gr.components.Slider(
-            minimum=1, maximum=2000, step=1, value=256, label="Max tokens"
+            minimum=1, maximum=2000, step=1, value=256, label="Max New Tokens"
+        ),
+        gr.components.Slider(
+            minimum=1, maximum=100, step=1, value=1, label="Min New Tokens"
         ),
         gr.components.Slider(
             minimum=0.1, maximum=10.0, step=0.1, value=1.0, label="Repetition Penalty"
@@ -470,7 +484,7 @@ gr.Interface(
     ],
     outputs=[
         gr.inputs.Textbox(
-            lines=5,
+            lines=15,
             label="Output",
         )
     ],
