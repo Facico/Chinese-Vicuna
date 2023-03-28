@@ -27,7 +27,29 @@ The repo contains:
 - March 27, 2023：Added multi-round interactive dialog script with alpaca-lora-serve service
 - March 28, 2023：Released  our model on [huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)
 
+## Table of Contents
 
+[Vicuna](https://github.com/Facico/Chinese-Vicuna)
+
+- [what's new](https://github.com/Facico/Chinese-Vicuna#whats-new)
+- [what is the meaning](https://github.com/Facico/Chinese-Vicuna#what-is-the-meaning)
+- [try on colab](https://github.com/Facico/Chinese-Vicuna#try-on-colab)
+- [performance](https://github.com/Facico/Chinese-Vicuna#performance)
+  - **Checkpoint-4000**(Facico/Chinese-Vicuna-lora-7b-0.75epoch-belle-and-guanaco)
+  - **Checkpoint-8000**(Facico/Chinese-Vicuna-lora-7b-1.5epoch-belle-and-guanaco)
+  - **Checkpoint-final**(Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco) and it is used for multiple rounds of dialogue
+- [What we need?](https://github.com/Facico/Chinese-Vicuna#what-we-need)
+  - code、data、Large Language Model、LORA model、Device
+- [How to use](https://github.com/Facico/Chinese-Vicuna#how-to-use)
+  - Installing、Multi-gpu training、Single-gpu training、Inference and use gradio to generate a web page、 multi-round interaction and use gradio to generate a web page、Streaming mode base on alpaca-lora-serve
+- [inference on CPU with pure C++](https://github.com/Facico/Chinese-Vicuna#inference-on-cpu-with-pure-c)
+- [More tools](https://github.com/Facico/Chinese-Vicuna#more-tools)，for more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tree/master/tools)
+  - ways for faster weight download ( 8MB/s )`download_llama.sh`
+  - convert tools between the original facebook checkpoint and huggingface format`convert_llama.py`
+  - a quantitative approach that requires less than 4G graphics memory for inference
+- [Possible problems encountered](https://github.com/Facico/Chinese-Vicuna#possible-problems-encountered)
+- [todo](https://github.com/Facico/Chinese-Vicuna#todo)
+- [citation](https://github.com/Facico/Chinese-Vicuna#citation)
 
 ## Overview
 
@@ -302,6 +324,8 @@ We also offer:
 - ways for faster weight download ( 8MB/s ) : [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/download_llama.sh)
 - convert tools between the original facebook checkpoint (`consolidated.xx.pth`) and huggingface format (`pytorch_model-000xx-of-000xx.bin`): [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/convert_llama.py)
 - a quantitative approach that requires less than 4G graphics memory for inference: [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/llama_quant.py)
+
+For more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tree/master/tools)
 
 ## Possible problems encountered
 

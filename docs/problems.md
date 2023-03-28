@@ -72,6 +72,7 @@ b'\\u7528\\u4e00\\u53e5\\u8bdd\\u63cf\\u8ff0\\u5730\\u7403\\u4e3a\\u4ec0\\u4e48\
 
   - https://github.com/Facico/Chinese-Vicuna/issues/4
   - 由于finetune.sh使用的是torchrun来运行的，可能存在torch和python版本之间的不对应问题。因为单卡不需要ddp，此时可以直接使用python来运行。参照readme中的单卡指令。
+    - python 3.11中torchrun有bug，详见[link](https://github.com/facebookresearch/llama/issues/86)
 
 - ddp跑多卡
 
@@ -303,3 +304,13 @@ b'\\u7528\\u4e00\\u53e5\\u8bdd\\u63cf\\u8ff0\\u5730\\u7403\\u4e3a\\u4ec0\\u4e48\
   ```
 
 - 因为这个是一个比较简单的例子，生成的时候没有加参数控制，在webui那里会有参数控制的，比如Repetition Penalty等
+
+**4、bitsandbytes报错**
+
+由于peft这个仓库正在开发中，还存在很多问题。比如跑generate.py的时候，不去指定某一张卡，它能会在其他卡也分配显存。
+
+- 也有可能像问题2那样，有一张卡是坏的
+
+跑程序的时候请检查GPU的运行情况，如果跑单卡，请使用`CUDA_VISIBLE_DEVICES=0`（序号根据实际情况定）
+
+[类似错误](https://github.com/deep-diver/Alpaca-LoRA-Serve/issues/28#issuecomment-1486081937)

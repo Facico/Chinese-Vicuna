@@ -31,6 +31,29 @@
 
 我们目前选择BELLE和Guanaco数据的组合作为我们的主要训练数据集。我们还将增加更多的闲聊数据集（例如[LCCC](https://github.com/thu-coai/CDial-GPT)）来支持闲聊对话。
 
+## 目录
+
+- [Vicuna](https://github.com/Facico/Chinese-Vicuna)
+  - [新的进展](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#whats-new)
+  - [意义在哪](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E6%84%8F%E4%B9%89%E5%9C%A8%E5%93%AA)
+  - [在colab上快速部署](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E5%9C%A8colab%E4%B8%8A%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2)
+  - [模型效果](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E6%A8%A1%E5%9E%8B%E6%95%88%E6%9E%9C)
+    - **Checkpoint-4000**(Facico/Chinese-Vicuna-lora-7b-0.75epoch-belle-and-guanaco)
+    - **Checkpoint-8000**(Facico/Chinese-Vicuna-lora-7b-1.5epoch-belle-and-guanaco)
+    - **Checkpoint-final**(Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)和它用来多轮对话
+  - [训练一个lora需要什么](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AAlora%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88)
+    - 代码、数据、上游模型、lora模型、设备
+  - [怎么使用](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E6%80%8E%E4%B9%88%E4%BD%BF%E7%94%A8)
+    - 安装、多卡训练、单卡训练、推理并生成一个webui、多轮交互并生成一个webui、基于alpaca-lora-serve的流式交互
+  - [使用纯C++在CPU上推理](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E4%BD%BF%E7%94%A8%E7%BA%AFc%E5%9C%A8cpu%E4%B8%8A%E8%BF%9B%E8%A1%8C%E6%8E%A8%E7%90%86)
+  - [更多工具](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E6%9B%B4%E5%A4%9A%E5%B7%A5%E5%85%B7)，详见[tool readme](https://github.com/Facico/Chinese-Vicuna/tree/master/tools)
+    - 其他模型权重的快速下载工具`download_llama.sh`
+    - llama系列模型，facebook格式和huggingface格式转换工具`convert_llama.py`
+    - 使用gptq的llama量化工具
+  - [可能遇到的问题](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E5%8F%AF%E8%83%BD%E4%BC%9A%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98)
+  - [todo](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#todo)
+  - [citation](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#citation)
+
 ## 意义在哪
 
 类似于stable diffusion模型的爆火，出现了像civitai等平台，由一个基础的模型+各种LORA模型的开源社区。
@@ -291,6 +314,8 @@ bash interaction.sh
 - 其他模型权重的下载方式 ( 更快， 8MB/s ) : [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/download_llama.sh)
 - 格式转换工具：llama系列模型参数文件的facebook格式 (`consolidated.xx.pth`) 和huggingface格式 (`pytorch_model-000xx-of-000xx.bin`): [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/convert_llama.py)
 - LLaMA量化：将模型量化为8bit、4bit、2bit的工具 (`gptq`) : [link](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/llama_quant.py)
+
+详见[tool readme](https://github.com/Facico/Chinese-Vicuna/tree/master/tools)
 
 ## 可能会遇到的问题
 
