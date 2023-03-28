@@ -1,0 +1,8 @@
+bitsandbytes
+datasets
+loralib 
+sentencepiece
+git+https://github.com/huggingface/transformers.git
+git+https://github.com/huggingface/peft.git
+gradio==3.20.0
+tenacity
