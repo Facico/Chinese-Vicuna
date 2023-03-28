@@ -1,20 +1,15 @@
 import sys
 import torch
-from peft import PeftModel, PeftModelForCausalLM,PeftConfig,LoraConfig
-from accelerate.hooks import AlignDevicesHook, add_hook_to_module, remove_hook_from_submodules
+from peft import PeftModel, PeftModelForCausalLM, LoraConfig
+from accelerate.hooks import (
+    AlignDevicesHook,
+    add_hook_to_module,
+    remove_hook_from_submodules,
+)
 from accelerate.utils import get_balanced_memory
 from huggingface_hub import hf_hub_download
 from accelerate import dispatch_model, infer_auto_device_map
-from peft.utils import ( 
-    PeftConfig,
-    PeftType,
-    PromptLearningConfig,
-    TaskType,
-    _set_trainable,
-    get_peft_model_state_dict,
-    set_peft_model_state_dict,
-    shift_tokens_right,
-)
+from peft.utils import PeftType, set_peft_model_state_dict
 import copy
 import transformers
 import gradio as gr
@@ -24,17 +19,23 @@ import os
 import torch.distributed as dist
 from typing import Optional, Tuple, Union, List, Callable
 from transformers.generation.logits_process import LogitsProcessor
-from transformers.generation.beam_search import BeamScorer,BeamSearchScorer
+from transformers.generation.beam_search import BeamScorer, BeamSearchScorer
 from transformers.deepspeed import is_deepspeed_zero3_enabled
-from transformers.generation.utils import LogitsProcessorList, StoppingCriteriaList, GenerationConfig, GenerationMixin
+from transformers.generation.utils import (
+    LogitsProcessorList,
+    StoppingCriteriaList,
+    GenerationConfig,
+    GenerationMixin,
+)
 from torch import nn
+
 assert (
     "LlamaTokenizer" in transformers._import_structure["models.llama"]
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
 from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 
-class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
-    
+
+class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
     # support for streamly beam search
     @torch.no_grad()
     def stream_generate(
@@ -43,7 +44,9 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
         generation_config: Optional[GenerationConfig] = None,
         logits_processor: Optional[LogitsProcessorList] = None,
         stopping_criteria: Optional[StoppingCriteriaList] = None,
-        prefix_allowed_tokens_fn: Optional[Callable[[int, torch.Tensor], List[int]]] = None,
+        prefix_allowed_tokens_fn: Optional[
+            Callable[[int, torch.Tensor], List[int]]
+        ] = None,
         **kwargs,
     ):
         self._reorder_cache = self.base_model._reorder_cache
@@ -57,7 +60,9 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
             prefix_attention_mask = torch.ones(
                 kwargs["input_ids"].shape[0], self.peft_config.num_virtual_tokens
             ).to(kwargs["input_ids"].device)
-            kwargs["attention_mask"] = torch.cat((prefix_attention_mask, kwargs["attention_mask"]), dim=1)
+            kwargs["attention_mask"] = torch.cat(
+                (prefix_attention_mask, kwargs["attention_mask"]), dim=1
+            )
         if kwargs.get("position_ids", None) is not None:
             warnings.warn(
                 "Position ids are not supported for parameter efficient tuning. Ignoring position ids."
@@ -76,12 +81,19 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
         generation_config = copy.deepcopy(generation_config)
         model_kwargs = generation_config.update(**kwargs)
 
-        bos_token_id, eos_token_id, pad_token_id = generation_config.bos_token_id, generation_config.eos_token_id, generation_config.pad_token_id
+        bos_token_id, eos_token_id, pad_token_id = (
+            generation_config.bos_token_id,
+            generation_config.eos_token_id,
+            generation_config.pad_token_id,
+        )
 
         if isinstance(eos_token_id, int):
             eos_token_id = [eos_token_id]
 
-        has_default_max_length = kwargs.get("max_length") is None and generation_config.max_length is not None
+        has_default_max_length = (
+            kwargs.get("max_length") is None
+            and generation_config.max_length is not None
+        )
         if has_default_max_length and generation_config.max_new_tokens is None:
             warnings.warn(
                 f"Using `max_length`'s default ({generation_config.max_length}) to control the generation length. "
@@ -90,14 +102,24 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
                 UserWarning,
             )
         elif generation_config.max_new_tokens is not None:
-            generation_config.max_length = generation_config.max_new_tokens + input_ids_seq_length
+            generation_config.max_length = (
+                generation_config.max_new_tokens + input_ids_seq_length
+            )
 
         if input_ids_seq_length >= generation_config.max_length:
-            input_ids_string = "decoder_input_ids" if self.config.is_encoder_decoder else "input_ids"
+            input_ids_string = (
+                "decoder_input_ids" if self.config.is_encoder_decoder else "input_ids"
+            )
 
         # 2. Set generation parameters if not already defined
-        logits_processor = logits_processor if logits_processor is not None else LogitsProcessorList()
-        stopping_criteria = stopping_criteria if stopping_criteria is not None else StoppingCriteriaList()
+        logits_processor = (
+            logits_processor if logits_processor is not None else LogitsProcessorList()
+        )
+        stopping_criteria = (
+            stopping_criteria
+            if stopping_criteria is not None
+            else StoppingCriteriaList()
+        )
         # 8. prepare distribution pre_processing samplers
         logits_processor = self._get_logits_processor(
             generation_config=generation_config,
@@ -138,7 +160,9 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
             raise ValueError(
                 f"Batch dimension of `input_ids` should be {num_beams * batch_size}, but is {batch_beam_size}."
             )
-        beam_scores = torch.zeros((batch_size, num_beams), dtype=torch.float, device=input_ids.device)
+        beam_scores = torch.zeros(
+            (batch_size, num_beams), dtype=torch.float, device=input_ids.device
+        )
         beam_scores[:, 1:] = -1e9
         beam_scores = beam_scores.view((batch_size * num_beams,))
         this_peer_finished = False  # used by synced_gpus only
@@ -146,13 +170,15 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
             if synced_gpus:
                 # Under synced_gpus the `forward` call must continue until all gpus complete their sequence.
                 # The following logic allows an early break if all peers finished generating their sequence
-                this_peer_finished_flag = torch.tensor(0.0 if this_peer_finished else 1.0).to(input_ids.device)
+                this_peer_finished_flag = torch.tensor(
+                    0.0 if this_peer_finished else 1.0
+                ).to(input_ids.device)
                 # send 0.0 if we finished, 1.0 otherwise
                 dist.all_reduce(this_peer_finished_flag, op=dist.ReduceOp.SUM)
                 # did all peers finish? the reduced sum will be 0.0 then
                 if this_peer_finished_flag.item() == 0.0:
                     break
-            
+
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
             outputs = self(
                 **model_inputs,
@@ -164,19 +190,23 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
             if synced_gpus and this_peer_finished:
                 cur_len = cur_len + 1
                 continue  # don't waste resources running the code we don't need
-                
+
             next_token_logits = outputs.logits[:, -1, :]
             # next_token_logits = self.adjust_logits_during_generation(next_token_logits, cur_len=cur_len) hack: adjust tokens for Marian.
             next_token_scores = nn.functional.log_softmax(
                 next_token_logits, dim=-1
             )  # (batch_size * num_beams, vocab_size)
             next_token_scores_processed = logits_processor(input_ids, next_token_scores)
-            next_token_scores = next_token_scores_processed + beam_scores[:, None].expand_as(next_token_scores)
+            next_token_scores = next_token_scores_processed + beam_scores[
+                :, None
+            ].expand_as(next_token_scores)
 
             # reshape for beam search
             vocab_size = next_token_scores.shape[-1]
-            next_token_scores = next_token_scores.view(batch_size, num_beams * vocab_size)
-            
+            next_token_scores = next_token_scores.view(
+                batch_size, num_beams * vocab_size
+            )
+
             # Sample 2 next tokens for each beam (so we have some spare tokens and match output of beam search)
             next_token_scores, next_tokens = torch.topk(
                 next_token_scores, 2 * num_beams, dim=1, largest=True, sorted=True
@@ -197,13 +227,17 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
             beam_next_tokens = beam_outputs["next_beam_tokens"]
             beam_idx = beam_outputs["next_beam_indices"]
 
-            input_ids = torch.cat([input_ids[beam_idx, :], beam_next_tokens.unsqueeze(-1)], dim=-1)
+            input_ids = torch.cat(
+                [input_ids[beam_idx, :], beam_next_tokens.unsqueeze(-1)], dim=-1
+            )
             model_kwargs = self._update_model_kwargs_for_generation(
                 outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder
             )
             if model_kwargs["past_key_values"] is not None:
-                model_kwargs["past_key_values"] = self._reorder_cache(model_kwargs["past_key_values"], beam_idx)
-            
+                model_kwargs["past_key_values"] = self._reorder_cache(
+                    model_kwargs["past_key_values"], beam_idx
+                )
+
             # increase cur_len
             cur_len = cur_len + 1
 
@@ -214,7 +248,7 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
                     break
                 else:
                     this_peer_finished = True
-        
+
         final_result = beam_scorer.finalize(
             input_ids,
             beam_scores,
@@ -225,7 +259,7 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
             max_length=stopping_criteria.max_length,
             beam_indices=None,
         )
-        yield final_result['sequences']
+        yield final_result["sequences"]
 
     # default it call `model = MODEL_TYPE_TO_PEFT_MODEL_MAPPING[config.task_type](model, config)`, not cls!! so inherent PeftModelForCausalLM is no sense
     @classmethod
@@ -240,11 +274,11 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
         model = cls(model, config)
 
         # load weights if any
-        if os.path.exists(os.path.join(model_id, 'adapter_model.bin')):
-            filename = os.path.join(model_id, 'adapter_model.bin')
+        if os.path.exists(os.path.join(model_id, "adapter_model.bin")):
+            filename = os.path.join(model_id, "adapter_model.bin")
         else:
             try:
-                filename = hf_hub_download(model_id, 'adapter_model.bin')
+                filename = hf_hub_download(model_id, "adapter_model.bin")
             except:  # noqa
                 raise ValueError(
                     f"Can't find weights for {model_id} in {model_id} or in the Hugging Face Hub. "
@@ -252,7 +286,8 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
                 )
 
         adapters_weights = torch.load(
-            filename, map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            filename,
+            map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
         )
         # load the weights into the model
         model = set_peft_model_state_dict(model, adapters_weights)
@@ -269,7 +304,9 @@ class SteamGenerationMixin(PeftModelForCausalLM,GenerationMixin):
                 )
             if isinstance(device_map, str):
                 device_map = infer_auto_device_map(
-                    model, max_memory=max_memory, no_split_module_classes=no_split_module_classes
+                    model,
+                    max_memory=max_memory,
+                    no_split_module_classes=no_split_module_classes,
                 )
             model = dispatch_model(model, device_map=device_map)
             hook = AlignDevicesHook(io_same_device=True)
@@ -299,9 +336,11 @@ if not os.path.exists(lora_bin_path):
     print(pytorch_bin_path)
     if os.path.exists(pytorch_bin_path):
         os.rename(pytorch_bin_path, lora_bin_path)
-        warnings.warn("The file name of the lora checkpoint'pytorch_model.bin' is replaced with 'adapter_model.bin'")
+        warnings.warn(
+            "The file name of the lora checkpoint'pytorch_model.bin' is replaced with 'adapter_model.bin'"
+        )
     else:
-        assert ('Checkpoint is not Found!')
+        assert "Checkpoint is not Found!"
 if torch.cuda.is_available():
     device = "cuda"
 else:
@@ -318,13 +357,10 @@ if device == "cuda":
         BASE_MODEL,
         load_in_8bit=LOAD_8BIT,
         torch_dtype=torch.float16,
-        device_map={'':0},
+        device_map={"": 0},
     )
     model = SteamGenerationMixin.from_pretrained(
-        model,
-        LORA_WEIGHTS,
-        torch_dtype=torch.float16,
-        device_map={'': 0}
+        model, LORA_WEIGHTS, torch_dtype=torch.float16, device_map={"": 0}
     )
 elif device == "mps":
     model = LlamaForCausalLM.from_pretrained(
@@ -332,7 +368,7 @@ elif device == "mps":
         device_map={"": device},
         torch_dtype=torch.float16,
     )
-    model = PeftModel.from_pretrained(
+    model = SteamGenerationMixin.from_pretrained(
         model,
         LORA_WEIGHTS,
         device_map={"": device},
@@ -342,11 +378,12 @@ else:
     model = LlamaForCausalLM.from_pretrained(
         BASE_MODEL, device_map={"": device}, low_cpu_mem_usage=True
     )
-    model = PeftModel.from_pretrained(
+    model = SteamGenerationMixin.from_pretrained(
         model,
         LORA_WEIGHTS,
         device_map={"": device},
     )
+
 
 def generate_prompt(instruction, input=None):
     if input:
@@ -366,6 +403,7 @@ def generate_prompt(instruction, input=None):
 {instruction}
 
 ### Response:"""
+
 
 if not LOAD_8BIT:
     model.half()  # seems to fix bugs for some users.
@@ -398,30 +436,19 @@ def evaluate(
         pad_token_id=0,
         **kwargs,
     )
-    try:
-        with torch.no_grad():
-            for generation_output in model.stream_generate(
-                input_ids=input_ids,
-                generation_config=generation_config,
-                return_dict_in_generate=True,
-                output_scores=True,
-                max_new_tokens=max_new_tokens,
-                repetition_penalty=float(repetition_penalty),
-            ):
-                outputs = tokenizer.batch_decode(generation_output)
-                yield '\n--------------------------------------------\n'.join([
-                    output.split("### Response:")[1].strip() for output in outputs
-                ])
-                print('\n--------------------------------------------\n'.join([
-                    output.split("### Response:")[1].strip() for output in outputs
-                ]))
-    except:
-        import sys,pdb,bdb
-        type, value, tb = sys.exc_info()
-        if type == bdb.BdbQuit:
-            exit()
-        print(type,value)
-        pdb.post_mortem(tb)
+    with torch.no_grad():
+        for generation_output in model.stream_generate(
+            input_ids=input_ids,
+            generation_config=generation_config,
+            return_dict_in_generate=True,
+            output_scores=True,
+            max_new_tokens=max_new_tokens,
+            repetition_penalty=float(repetition_penalty),
+        ):
+            outputs = tokenizer.batch_decode(generation_output)
+            yield "\n--------------------------------------------\n".join(
+                [output.split("### Response:")[1].strip() for output in outputs]
+            )
 
 
 gr.Interface(
@@ -450,24 +477,3 @@ gr.Interface(
     title="Chinese-Vicuna 中文小羊驼",
     description="中文小羊驼由各种高质量的开源instruction数据集，结合Alpaca-lora的代码训练而来，模型基于开源的llama7B，主要贡献是对应的lora模型。由于代码训练资源要求较小，希望为llama中文lora社区做一份贡献。",
 ).queue().launch(share=True)
-
-# Old testing code follows.
-
-"""
-if __name__ == "__main__":
-    # testing code for readme
-    for instruction in [
-        "Tell me about alpacas.",
-        "Tell me about the president of Mexico in 2019.",
-        "Tell me about the king of France in 2019.",
-        "List all Canadian provinces in alphabetical order.",
-        "Write a Python program that prints the first 10 Fibonacci numbers.",
-        "Write a program that prints the numbers from 1 to 100. But for multiples of three print 'Fizz' instead of the number and for the multiples of five print 'Buzz'. For numbers which are multiples of both three and five print 'FizzBuzz'.",
-        "Tell me five words that rhyme with 'shock'.",
-        "Translate the sentence 'I have no mouth but I must scream' into Spanish.",
-        "Count up from 1 to 500.",
-    ]:
-        print("Instruction:", instruction)
-        print("Response:", evaluate(instruction))
-        print()
-"""
