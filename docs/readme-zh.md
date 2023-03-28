@@ -20,6 +20,7 @@
 - March 26, 2023：提供了LLaMA模型的量化方法
 - March 27, 2023：开放了在belle+guanaco数据上训练3个epoch的checkpoint-final
 - March 27, 2023：增加了多轮交互式对话脚本与alpaca-lora-serve服务
+- March 28, 2023：在[huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)上开放了我们的模型
 
 相关技术
 
@@ -36,7 +37,7 @@
 
 本项目希望帮助大家去训练这个LORA
 
-- 什么是LORA
+- **什么是LORA**
   - 简单的说就是用来帮大模型适应你的数据集的一个插件，技术细节见[LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/pdf/2106.09685.pdf)，他的优点是finetune的时候非常的快，得到的模型也很小，大概30M左右，关键是支持**即插即用**。可以预见，这是一个非常适合开源生态的架构。
 
 我们这里，将通过非常低配置的环境，帮助大家训练，仅一张**2080**（11G）就能取得一定的效果。
@@ -188,7 +189,10 @@ A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此�
       -  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
       - https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-8000  
       - https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-final 
-    - 由于比较小暂时直接传在github上，后续会将更多的lora模型传在huggingface或网盘上
+    - 你也可以从huggingface上加载我们的模型或其他lora模型，加载方式参考[generate.py](https://github.com/Facico/Chinese-Vicuna/blob/master/generate.py)
+      - `Facico/Chinese-Vicuna-lora-7b-0.75epoch-belle-and-guanaco`
+      - `Facico/Chinese-Vicuna-lora-7b-1.5epoch-belle-and-guanaco`
+      - `Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco`
     - 模型使用的是8bit+lora+256 tokens
 
 - 设备：
@@ -242,6 +246,8 @@ bash generate.sh
   - LORA_PATH，lora模型的checkpoint文件夹
     - 这里要注意的是，lora模型加载的config必须是"adapter_config.json"，模型名字必须是“adapter_model.bin”，不过在训练的时候会自动保存为“pytorch_model.bin”，而"adapter_config.json"和“adapter_model.bin”会在全部训练结束之后保存
       - 如果你是在训练的checkpoint中载入的lora模型，代码里会自动帮你把本地的"config-sample/adapter_config.json"复制到对应目录，并把“pytorch_model.bin”改名为“adapter_model.bin”
+    - 也可以是任意的huggingface上对应llama 7B的lora模型，如：`Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco`
+  - USE_LOCAL，设置为1时会检查本地模型配置
 - 使用的时候，"max_tokens"根据自己电脑的显存来设置，如果生成的内容产生了很多重复信息，可以将"Repetition Penalty"调高
 
 **多轮交互**
@@ -298,7 +304,7 @@ bash interaction.sh
 - [x] belle+guanaco(100%)
 - [ ] 加入更多类似chitchat的对话型语料，增强自由对话的能力
 - [x] 增加colab训练+lora载入接口
-- [x] Add the interaction capabilities
+- [x] 增加了交互能力和打字机式的输出(by alpaca-lora-serve)
 - [x] 增加llama的c++推理
 - [x] 增加gptq模型量化方法
 

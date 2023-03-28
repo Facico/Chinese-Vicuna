@@ -4,7 +4,7 @@ wandb
 runs
 flagged
 checkpoint-5000*
-llama-7b*
+checkpoint-3800*
 
 # cpp out files
 chat

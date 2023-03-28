@@ -25,6 +25,7 @@ The repo contains:
 - March 26, 2023：Provides a quantitative approach
 - March 27, 2023：Released  checkpoint-final for training 3 epochs on belle+guanaco
 - March 27, 2023：Added multi-round interactive dialog script with alpaca-lora-serve service
+- March 28, 2023：Released  our model on [huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)
 
 
 
@@ -195,7 +196,10 @@ A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此�
       - 50w data：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
       - 100w data（1.5 epoch）:  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-8000  
       - all data（3 epoch）:  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-final
-    - Since the model is relatively small, it is temporarily uploaded on github(about 30M).More lora models will be uploaded later on huggingface or on the BaiduDownload or Google Drive
+    - You can also load our or other models from huggingface, load it by referring to [generate.py](https://github.com/Facico/Chinese-Vicuna/blob/master/generate.py)
+      - `Facico/Chinese-Vicuna-lora-7b-0.75epoch-belle-and-guanaco`
+      - `Facico/Chinese-Vicuna-lora-7b-1.5epoch-belle-and-guanaco`
+      - `Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco`
     - The model uses 8bit+lora+256 tokens
 
 - Device：
@@ -252,6 +256,8 @@ bash generate.sh
   - LORA_PATH，The checkpoint folder of the lora model
     - It should be noted here that the config loaded by the lora model must be "adapter_config.json" and the model name must be "adapter_model.bin", but it will be automatically saved as "pytorch_model.bin" during training. pytorch_model.bin" during training, while "adapter_config.json" and "adapter_model.bin" will be saved after all training is finished
       - If you load the lora model in the training checkpoint, the code will automatically copy the local "config-sample/adapter_config.json" to the corresponding directory for you and rename the "pytorch_model.bin" to "adapter_model.bin". and rename "pytorch_model.bin" to "adapter_model.bin".
+    - It can also be any lora model on the huggingface corresponding to llama 7B, e.g.: `Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco`
+  - USE_LOCAL, which checks the local model configuration when set to 1
 - When using, "max_tokens" is set according to your computer's video memory, and if the generated content generates a lot of duplicate information, you can turn up the "Repetition Penalty".
 
 
@@ -309,10 +315,9 @@ When installing and using this project, some problems may be encountered, and th
 - [x] belle+guanaco(100%)
 - [ ] Add more chitchat-like conversational corpus to enhance free conversation
 - [x] Add colab training + lora loading interface
-- [x] Add the interaction capabilities
+- [x] Add the interaction capabilities and typewrite-style output(by alpaca-lora-serve)
 - [x] Add llama c++ inference
 - [x] Add gptq quantification tools
-- [ ] Add typewrite-style output 
 
 # Citation
 
