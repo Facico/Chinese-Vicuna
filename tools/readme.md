@@ -1,3 +1,4 @@
+|[English](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)|[中文](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme_zh.md)|
 This directory offers tools for Vicuna model :
 1. to run on CPU (in pure C/C++).
 2. quantize the model to 2bit, 4bit, 6bit, 8bit.
