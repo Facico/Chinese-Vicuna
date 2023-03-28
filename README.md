@@ -312,6 +312,7 @@ When installing and using this project, some problems may be encountered, and th
 - [x] Add the interaction capabilities
 - [x] Add llama c++ inference
 - [x] Add gptq quantification tools
+- [ ] Add typewrite-style output 
 
 # Citation
 
