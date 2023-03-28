@@ -26,6 +26,7 @@ The repo contains:
 - March 27, 2023：Released  checkpoint-final for training 3 epochs on belle+guanaco
 - March 27, 2023：Added multi-round interactive dialog script with alpaca-lora-serve service
 - March 28, 2023：Released  our model on [huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)
+- March 29, 2023：Added gradio typewriter-like output with beam search, better user interaction support.
 
 ## Table of Contents
 
