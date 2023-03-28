@@ -5,7 +5,13 @@ runs
 flagged
 checkpoint-5000*
 checkpoint-3800*
-
+optimizer.pt
+rng_state*
+scaler.pt
+scheduler.pt
+trainer_state.json
+training_args.bin
+pytorch_model.bin
 # cpp out files
 chat
 quantize
