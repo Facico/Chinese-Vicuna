@@ -15,6 +15,7 @@ from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_path", type=str, default="decapoda-research/llama-7b-hf")
 parser.add_argument("--lora_path", type=str, default="./lora-Vicuna/checkpoint-3000")
+parser.add_argument("--use_local", type=int, default=1)
 args = parser.parse_args()
 
 tokenizer = LlamaTokenizer.from_pretrained(args.model_path)
@@ -23,9 +24,12 @@ LOAD_8BIT = True
 BASE_MODEL = args.model_path
 LORA_WEIGHTS = args.lora_path
 
+
+
+# fix the path for local checkpoint
 lora_bin_path = os.path.join(args.lora_path, "adapter_model.bin")
 print(lora_bin_path)
-if not os.path.exists(lora_bin_path):
+if not os.path.exists(lora_bin_path) and args.use_local:
     pytorch_bin_path = os.path.join(args.lora_path, "pytorch_model.bin")
     print(pytorch_bin_path)
     if os.path.exists(pytorch_bin_path):
@@ -33,6 +37,7 @@ if not os.path.exists(lora_bin_path):
         warnings.warn("The file name of the lora checkpoint'pytorch_model.bin' is replaced with 'adapter_model.bin'")
     else:
         assert ('Checkpoint is not Found!')
+
 if torch.cuda.is_available():
     device = "cuda"
 else:
