@@ -33,6 +33,7 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 - March 28, 2023：Released  our model on [huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)
 - March 29, 2023：Added gradio typewriter-like output with beam search, better user interaction support.
 - March 29, 2023：Added breakpoint retraining interface to support continued training of other datasets from our checkpoint
+- March 29, 2023: Released our new [13B-based lora model](https://huggingface.co/Chinese-Vicuna)
 
 ## Table of Contents
 

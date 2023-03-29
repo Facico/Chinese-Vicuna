@@ -27,6 +27,7 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 - March 28, 2023：在[huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)上开放了我们的模型
 - March 29, 2023：我们对gradio-UI改进，添加了更好的用户支持(支持beam search的打字机输出效果，清除对话历史，重置参数)
 - March 29, 2023：增加了断点重训接口，支持从我们的checkpoint继续训练其他数据集
+- March 29, 2023: 开放了我们训练的13B lora模型[13B-based lora model](https://huggingface.co/Chinese-Vicuna)
 
 **相关技术**
 
