@@ -16,11 +16,10 @@ The repo contains:
 - code for run on CPU (fp16 or int4 is support, in purely C++)
 - tools to download/convert/quantify original facebook llama.ckpt
 
-```HTML
-<video controls>
-    <source src="https://github.com/Facico/Chinese-Vicuna/blob/master/img/tmp.mkv" type="video/mp4">
-</video>
-```
+This is our instruction demo:
+
+https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-848a-599e6edfa5ef.mp4
+
 
 ## What‘s New
 
