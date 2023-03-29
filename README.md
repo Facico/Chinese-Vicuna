@@ -16,6 +16,8 @@ The repo contains:
 - code for run on CPU (fp16 or int4 is support, in purely C++)
 - tools to download/convert/quantify original facebook llama.ckpt
 
+![Demo](https://github.com/Facico/Chinese-Vicuna/blob/master/img/tmp.mkv)
+
 ## What‘s New
 
 - March 23, 2023：Released checkpoint-4000 with 50w data training
