@@ -18,7 +18,7 @@ The repo contains:
 
 ```HTML
 <video controls>
-    <source src="[movie.mp4](https://github.com/Facico/Chinese-Vicuna/blob/master/img/tmp.mkv)" type="video/mp4">
+    <source src="https://github.com/Facico/Chinese-Vicuna/blob/master/img/tmp.mkv" type="video/mp4">
 </video>
 ```
 
