@@ -11,6 +11,10 @@
 - 仅使用CPU推理的代码 (使用C++) 
 - 下载/转换/量化Facebook llama.ckpt的工具
 
+This is our instruction demo:
+
+https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-848a-599e6edfa5ef.mp4
+
 ## What‘s New
 
 - March 23, 2023：开放了在belle+guanaco数据上训练50w条数据训练的checkpoint-4000
@@ -22,8 +26,9 @@
 - March 27, 2023：增加了多轮交互式对话脚本与alpaca-lora-serve服务
 - March 28, 2023：在[huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)上开放了我们的模型
 - March 29, 2023：我们对gradio-UI改进，添加了更好的用户支持(支持beam search的打字机输出效果，清除对话历史，重置参数)
+- March 29, 2023：增加了断点重训接口，支持从我们的checkpoint继续训练其他数据集
 
-相关技术
+**相关技术**
 
 -  LLaMA paper: https://arxiv.org/abs/2302.13971v1
 -  Self-Instruct paper: https://arxiv.org/abs/2212.10560
@@ -45,7 +50,7 @@
   - [训练一个lora需要什么](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AAlora%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88)
     - 代码、数据、上游模型、lora模型、设备
   - [怎么使用](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E6%80%8E%E4%B9%88%E4%BD%BF%E7%94%A8)
-    - 安装、多卡训练、单卡训练、推理并生成一个webui、多轮交互并生成一个webui、基于alpaca-lora-serve的流式交互
+    - 安装、多卡训练、单卡训练、推理并生成一个webui(支持流式+beam search)、多轮交互并生成一个webui(支持流式+beam search)、基于alpaca-lora-serve的流式交互(不支持beam search)
   - [使用纯C++在CPU上推理](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E4%BD%BF%E7%94%A8%E7%BA%AFc%E5%9C%A8cpu%E4%B8%8A%E8%BF%9B%E8%A1%8C%E6%8E%A8%E7%90%86)
   - [更多工具](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md#%E6%9B%B4%E5%A4%9A%E5%B7%A5%E5%85%B7)，详见[tool readme](https://github.com/Facico/Chinese-Vicuna/tree/master/tools)
     - 其他模型权重的快速下载工具`download_llama.sh`
@@ -304,6 +309,45 @@ bash interaction.sh
 
 - 这个工具可以让生成一个字一个字地生成，不用等待很久才看到结果。由于该工具还在开发阶段，streaming mode中无法使用beam search和Repetition Penalty，所以目前的生成结果不太好。（目前webui框中这两个参数无效）
 
+## 断点重训/增量训练
+
+考虑到可能程序会中途断开，或者需要在垂直领域的数据上继续训练的情况，我们提供了相应的接口。
+
+下面都是默认多卡脚本，单卡情况请根据上面修改（直接用python运行）
+
+**断点重训**
+
+```bash
+finetune_continue.sh
+```
+
+- 设置好其中的lora_checkpoint
+  - 如果这个目录下有优化器(optimizer.pt)、lr策略(scheduler.pt)等文件，会自动加载并从断掉的地方重新训练
+  - 如果这个目录下只有lora相关的模型(adapter_model.bin)和配置(adapter_config.json)，会加载并从头开始训练
+- from_data_beginning这个参数表示加载的时候，是否从数据最开始训练（默认否：从数据断开的地方开始训练）
+
+**基于其他数据集继续训练**
+
+当然，你可以选择用上面的脚本，直接从一个已经训练好的lora模型继续训练（不加载任何优化器参数）
+
+你也可以从我们的优化器参数开始继续训练
+
+```bash
+finetune_others_continue.sh
+```
+
+- from_data_beginning这里会默认从数据最开始训练
+
+这个脚本的逻辑主要是保持学习率一致，如果你的max_steps比我们小，将max_steps和我们训练时的max_steps保持一致，相当于你的数据直接拼在我们断开的数据后面；如果你的数据集比我们大，将直接保持不变
+
+
+
+我们目前直接提供1个epoch和2个epoch训练完时的checkpoint
+
+- 1epoch：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-5800
+- 2epoch：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-11600
+- 如果使用我们的checkpoint，你的程序也将从对应的step继续
+
 ## **使用纯C++在CPU上进行推理**
 
 详情见`tools`的[readme](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)
@@ -330,9 +374,11 @@ bash interaction.sh
 - [x] belle+guanaco(100%)
 - [ ] 加入更多类似chitchat的对话型语料，增强自由对话的能力
 - [x] 增加colab训练+lora载入接口
-- [x] 增加了交互能力和打字机式的输出(by alpaca-lora-serve)
+- [x] 增加了交互能力和打字机式的输出(beam search+流式输出)
 - [x] 增加llama的c++推理
 - [x] 增加gptq模型量化方法
+- [x] 增加增量训练
+- [ ] 增加langchain
 
 # Citation
 
