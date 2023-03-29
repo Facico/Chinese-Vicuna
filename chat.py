@@ -12,6 +12,7 @@ from accelerate import dispatch_model, infer_auto_device_map
 from peft.utils import PeftType, set_peft_model_state_dict
 import copy
 import transformers
+import json
 import gradio as gr
 import argparse
 import warnings
@@ -334,8 +335,6 @@ LOAD_8BIT = True
 BASE_MODEL = args.model_path
 LORA_WEIGHTS = args.lora_path
 
-
-
 # fix the path for local checkpoint
 lora_bin_path = os.path.join(args.lora_path, "adapter_model.bin")
 print(lora_bin_path)
@@ -394,25 +393,36 @@ else:
     )
 
 
-def generate_prompt(instruction, input=None):
-    if input:
-        return f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+CHAT_DICT = {
+    'prompt': (
+        "The following is a conversation between an AI assistant called Bot and a human user called User."
+        "Bot is is intelligent, knowledgeable, wise and polite.\n\n"
+    ),
+    'history': (
+        "User:\n{input}\n\nBot:{output}\n\n"
+    ),
+    'input': (
+        "### User:\n{input}\n\n### Bot:"
+    )
+}
 
-### Instruction:
-{instruction}
-
-### Input:
-{input}
-
-### Response:"""
-    else:
-        return f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
-
-### Instruction:
-{instruction}
-
-### Response:"""
-
+def generate_prompt_and_tokenize(data_point, maxlen):
+    # cutoff the history to avoid exceeding length limit
+    init_prompt = CHAT_DICT['prompt']
+    init_ids = tokenizer(init_prompt)['input_ids']
+    seqlen = len(init_ids)
+    input_prompt = CHAT_DICT['input'].format_map(data_point)
+    input_ids = tokenizer(input_prompt)['input_ids']
+    seqlen += len(input_ids)
+    if seqlen > maxlen:
+        raise Exception('>>> The input question is too long! Cosidering increase the Max Memory value or decrease the length of input! ')
+    history_prompt = ''
+    for history in data_point['history']:
+        history_prompt+= CHAT_DICT['history'].format_map(history) 
+    # cutoff
+    history_ids = tokenizer(history_prompt)['input_ids'][-(maxlen - seqlen):]
+    input_ids = init_ids + history_ids + input_ids
+    return input_ids
 
 if not LOAD_8BIT:
     model.half()  # seems to fix bugs for some users.
@@ -424,6 +434,7 @@ if torch.__version__ >= "2" and sys.platform != "win32":
 
 def evaluate(
     input,
+    history,
     temperature=0.1,
     top_p=0.75,
     top_k=40,
@@ -431,11 +442,18 @@ def evaluate(
     max_new_tokens=128,
     min_new_tokens=1,
     repetition_penalty=2.0,
+    max_memory=1024,
     **kwargs,
 ):
-    prompt = generate_prompt(input)
-    inputs = tokenizer(prompt, return_tensors="pt")
-    input_ids = inputs["input_ids"].to(device)
+    
+    history = [] if history is None else history
+    data_point = {
+        'history': history,
+        'input': input,
+    }
+    print(data_point)
+    input_ids = generate_prompt_and_tokenize(data_point, max_memory)
+    input_ids = torch.tensor([input_ids]).to(device) # batch=1
     generation_config = GenerationConfig(
         temperature=temperature,
         top_p=top_p,
@@ -448,8 +466,10 @@ def evaluate(
         min_new_tokens=min_new_tokens, # min_length=min_new_tokens+input_sequence
         **kwargs,
     )
+    
+    return_text = [(item['input'], item['output']) for item in history]
+    
     with torch.no_grad():
-        last_show_text = ''
         for generation_output in model.stream_generate(
             input_ids=input_ids,
             generation_config=generation_config,
@@ -459,40 +479,175 @@ def evaluate(
         ):
             outputs = tokenizer.batch_decode(generation_output)
             show_text = "\n--------------------------------------------\n".join(
-                [output.split("### Response:")[1].strip().replace('�','') for output in outputs]
+                [output.split("### Bot:")[1].strip().replace('�','').replace("Belle", "Vicuna") for output in outputs]
             )
-            # if show_text== '':
-            #     yield last_show_text
-            # else:
-            yield show_text
-            last_show_text = outputs[0].split("### Response:")[1].strip().replace('�','')
+            yield return_text +[(input, show_text)], history
+        
+        history.append({
+            'input': input,
+            'output': show_text,
+        })
+        return_text += [(input, show_text)]
+        yield return_text, history
 
-gr.Interface(
-    fn=evaluate,
-    inputs=[
-        gr.components.Textbox(
-            lines=2, label="Input", placeholder="Tell me about alpacas."
-        ),
-        gr.components.Slider(minimum=0, maximum=1, value=0.1, label="Temperature"),
-        gr.components.Slider(minimum=0, maximum=1, value=0.75, label="Top p"),
-        gr.components.Slider(minimum=0, maximum=100, step=1, value=40, label="Top k"),
-        gr.components.Slider(minimum=1, maximum=10, step=1, value=4, label="Beams Number"),
-        gr.components.Slider(
-            minimum=1, maximum=2000, step=1, value=256, label="Max New Tokens"
-        ),
-        gr.components.Slider(
-            minimum=1, maximum=100, step=1, value=1, label="Min New Tokens"
-        ),
-        gr.components.Slider(
-            minimum=0.1, maximum=10.0, step=0.1, value=1.0, label="Repetition Penalty"
-        ),
-    ],
-    outputs=[
-        gr.inputs.Textbox(
-            lines=15,
-            label="Output",
+
+# inputs = [
+#     gr.components.Textbox(
+#         lines=2, label="Input", placeholder="Tell me about alpacas."
+#     ),
+#     "state",
+#     gr.components.Slider(minimum=0, maximum=1, value=0.1, label="Temperature"),
+#     gr.components.Slider(minimum=0, maximum=1, value=0.75, label="Top p"),
+#     gr.components.Slider(minimum=0, maximum=100, step=1, value=40, label="Top k"),
+#     gr.components.Slider(minimum=1, maximum=10, step=1, value=4, label="Beams Number"),
+#     gr.components.Slider(
+#         minimum=1, maximum=2000, step=1, value=256, label="Max New Tokens"
+#     ),
+#     gr.components.Slider(
+#         minimum=1, maximum=100, step=1, value=5, label="Min New Tokens"
+#     ),
+#     gr.components.Slider(
+#         minimum=0.1, maximum=10.0, step=0.1, value=2.0, label="Repetition Penalty"
+#     ),
+#     gr.components.Slider(
+#         minimum=0, maximum=2048, step=1, value=256, label="Max Memory"
+#     ),
+# ]
+# outputs = [
+#     gr.Chatbot().style(height=750),
+#     "state"
+# ]
+# evaluate_block = gr.Interface(
+#     fn=evaluate,
+#     inputs=inputs,
+#     outputs=outputs,
+#     allow_flagging="auto",
+#     title="Chinese-Vicuna 中文小羊驼",
+#     description="中文小羊驼由各种高质量的开源instruction数据集，结合Alpaca-lora的代码训练而来，模型基于开源的llama7B，主要贡献是对应的lora模型。由于代码训练资源要求较小，希望为llama中文lora社区做一份贡献。",
+# ).queue().launch(share=False)
+
+with gr.Blocks() as demo:
+    fn = evaluate
+    title = gr.Markdown(
+        "<h1 style='text-align: center; margin-bottom: 1rem'>"
+        + "Chinese-Vicuna 中文小羊驼"
+        + "</h1>"
+    )
+    description = gr.Markdown(
+        "中文小羊驼由各种高质量的开源instruction数据集，结合Alpaca-lora的代码训练而来，模型基于开源的llama7B，主要贡献是对应的lora模型。由于代码训练资源要求较小，希望为llama中文lora社区做一份贡献。"
+    )
+    history = gr.components.State()
+    with gr.Row().style(equal_height=False):
+        with gr.Column(variant="panel"):
+            input_component_column = gr.Column()
+            with input_component_column:
+                input = gr.components.Textbox(
+                    lines=2, label="Input", placeholder="请输入问题."
+                )
+                temperature = gr.components.Slider(minimum=0, maximum=1, value=0.1, label="Temperature")
+                topp = gr.components.Slider(minimum=0, maximum=1, value=0.75, label="Top p")
+                topk = gr.components.Slider(minimum=0, maximum=100, step=1, value=40, label="Top k")
+                beam_number = gr.components.Slider(minimum=1, maximum=10, step=1, value=4, label="Beams Number")
+                max_new_token = gr.components.Slider(
+                    minimum=1, maximum=2000, step=1, value=256, label="Max New Tokens"
+                )
+                min_new_token = gr.components.Slider(
+                    minimum=1, maximum=100, step=1, value=5, label="Min New Tokens"
+                )
+                repeat_penal = gr.components.Slider(
+                    minimum=0.1, maximum=10.0, step=0.1, value=2.0, label="Repetition Penalty"
+                )
+                max_memory = gr.components.Slider(
+                    minimum=0, maximum=2048, step=1, value=256, label="Max Memory"
+                )
+                input_components = [
+                    input, history, temperature, topp, topk, beam_number, max_new_token, min_new_token, repeat_penal, max_memory
+                ]
+                input_components_except_states = [input, temperature, topp, topk, beam_number, max_new_token, min_new_token, repeat_penal, max_memory]
+            with gr.Row():
+                reset_btn = gr.Button("Reset")
+                submit_btn = gr.Button("Submit", variant="primary")
+                stop_btn = gr.Button("Stop", variant="stop", visible=False)
+            clear_history = gr.Button("Clear History")
+            
+
+        with gr.Column(variant="panel"):
+            chatbot = gr.Chatbot().style(height=750)
+            output_components = [ chatbot, history ]  
+            # clear_chatbot = gr.Button("Clear ChatBot")
+        # Wrap the original function to show/hide the "Stop" button
+        def wrapper(*args):
+            # The main idea here is to call the original function
+            # and append some updates to keep the "Submit" button
+            # hidden and the "Stop" button visible
+            # The 'finally' block hides the "Stop" button and
+            # shows the "submit" button. Having a 'finally' block
+            # will make sure the UI is "reset" even if there is an exception
+            try:
+                for output in fn(*args):
+                    output = [o for o in output]
+                    # output for output_components, the rest for [button, button]
+                    yield output + [
+                        gr.Button.update(visible=False),
+                        gr.Button.update(visible=True),
+                    ]
+            finally:
+                yield [{'__type__': 'generic_update'}, {'__type__': 'generic_update'}] + [ gr.Button.update(visible=True), gr.Button.update(visible=False)]
+
+        extra_output = [submit_btn, stop_btn]
+
+        pred = submit_btn.click(
+            wrapper, 
+            input_components, 
+            output_components + extra_output, 
+            api_name="predict",
+            scroll_to_output=True,
+            preprocess=True,
+            postprocess=True,
+            batch=False,
+            max_batch_size=4,
         )
-    ],
-    title="Chinese-Vicuna 中文小羊驼",
-    description="中文小羊驼由各种高质量的开源instruction数据集，结合Alpaca-lora的代码训练而来，模型基于开源的llama7B，主要贡献是对应的lora模型。由于代码训练资源要求较小，希望为llama中文lora社区做一份贡献。",
-).queue().launch(share=True)
+        submit_btn.click(
+            lambda: (
+                submit_btn.update(visible=False),
+                stop_btn.update(visible=True),
+            ),
+            inputs=None,
+            outputs=[submit_btn, stop_btn],
+            queue=False,
+        )
+        stop_btn.click(
+            lambda: (
+                submit_btn.update(visible=True),
+                stop_btn.update(visible=False),
+            ),
+            inputs=None,
+            outputs=[submit_btn, stop_btn],
+            cancels=[pred],
+            queue=False,
+        )
+        reset_btn.click(
+            None, 
+            [],
+            (
+                # input_components ; don't work for history...
+                input_components_except_states
+                + [input_component_column]
+            ),  # type: ignore
+            _js=f"""() => {json.dumps([
+                getattr(component, "cleared_value", None) for component in input_components_except_states ] 
+                + ([gr.Column.update(visible=True)])
+                + ([])
+            )}
+            """,
+        )
+        # clear_history.click(
+        #     lambda: [None,None], # or None, don't work 
+        #     None, 
+        #     [chatbot, history], 
+        #     queue=False
+        # )
+        clear_history.click(lambda: (None, None), None, [history, chatbot], queue=False)
+        # clear_chatbot.click(lambda: None, None, chatbot, queue=False)
+
+demo.queue().launch(share=False)

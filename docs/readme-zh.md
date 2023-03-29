@@ -21,6 +21,7 @@
 - March 27, 2023：开放了在belle+guanaco数据上训练3个epoch的checkpoint-final
 - March 27, 2023：增加了多轮交互式对话脚本与alpaca-lora-serve服务
 - March 28, 2023：在[huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)上开放了我们的模型
+- March 29, 2023：我们对gradio-UI改进，添加了更好的用户支持(支持beam search的打字机输出效果，清除对话历史，重置参数)
 
 相关技术
 
