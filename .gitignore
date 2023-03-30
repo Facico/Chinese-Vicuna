@@ -17,7 +17,12 @@ chat
 quantize
 *.o
 *.a
-cmake_install.cmake
-CMakeFiles
-CMakeCache.txt
 Makefile
+.idea
+cmake*
+CMakeCache.txt
+CMakeFiles
+.cmake*
+Testing
+.ninja*
+build.*
