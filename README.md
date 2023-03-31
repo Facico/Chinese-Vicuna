@@ -34,6 +34,7 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 - March 29, 2023：Added gradio typewriter-like output with beam search, better user interaction support.
 - March 29, 2023：Added breakpoint retraining interface to support continued training of other datasets from our checkpoint
 - March 29, 2023: Released our new [13B-based lora model](https://huggingface.co/Chinese-Vicuna)
+- March 29, 2023: Add more detailed test samples. [performance](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 
 ## Table of Contents
 
@@ -87,6 +88,8 @@ Here, we will help you train through a very low-demand environment, with only on
 | [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1Yc38cKifY1_sfTBJpEEKin8m2rxoYXtm?usp=sharing) | Provide a webui for multi-round dialogue interaction         |
 
 ## Performance
+
+checkpoint-final performance can be seen [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 
 **Checkpoint-4000**
 

@@ -28,6 +28,7 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 - March 29, 2023：我们对gradio-UI改进，添加了更好的用户支持(支持beam search的打字机输出效果，清除对话历史，重置参数)
 - March 29, 2023：增加了断点重训接口，支持从我们的checkpoint继续训练其他数据集
 - March 29, 2023: 开放了我们训练的13B lora模型[13B-based lora model](https://huggingface.co/Chinese-Vicuna)
+- March 29, 2023：增加了更详细的[performance样例](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 
 **相关技术**
 
@@ -81,6 +82,8 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 | [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1Yc38cKifY1_sfTBJpEEKin8m2rxoYXtm?usp=sharing) | 为多轮对话交互接口提供一个webui                              |
 
 ## 模型效果
+
+checkpoint-final的模型效果参见[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 
 **Checkpoint-4000**
 
