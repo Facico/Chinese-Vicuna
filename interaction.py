@@ -123,7 +123,7 @@ def interaction(
     now_input = input
     history = history or []
     if len(history) != 0:
-        input = "\n".join(["User:" + i[0]+"\n"+"Assistant:" + i[1] for i in history]) + "\n" + input
+        input = "\n".join(["User:" + i[0]+"\n"+"Assistant:" + i[1] for i in history]) + "\n" + "User:" + input + "Assistant:"
         if len(input) > max_memory:
             input = input[-max_memory:]
     print(input)
