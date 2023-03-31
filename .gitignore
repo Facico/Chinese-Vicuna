@@ -3,8 +3,6 @@ __pycache__/
 wandb
 runs
 flagged
-checkpoint-5000*
-checkpoint-3800*
 #optimizer.pt
 #rng_state*
 #scaler.pt
