@@ -1,12 +1,19 @@
-BASE_MODEL="decapoda-research/llama-7b-hf"
-LORA_PATH="Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco" #"./lora-Vicuna/checkpoint-final"
+BASE_MODEL="/model/13B_hf"
+LORA_PATH="checkpoint-6000" #"./lora-Vicuna/checkpoint-final"
 USE_LOCAL=0 # 0: use local model, 1: use huggingface model
+DEBUG=1
 if [ USE_LOCAL == 1 ]
 then
 cp ./config-sample/adapter_config.json $LORA_PATH
 fi
-CUDA_VISIBLE_DEVICES=2 python chat.py \
-    --model_path $BASE_MODEL \
-    --lora_path $LORA_PATH \
-    --use_local $USE_LOCAL
 
+if [ DEBUG == 1 ]
+then
+jurigged -v chat.py --model_path $BASE_MODEL --lora_path $LORA_PATH --use_local $USE_LOCAL\
+ --use_typewriter 1 \
+ --share_link 0 
+else
+python chat.py --model_path $BASE_MODEL --lora_path $LORA_PATH --use_local $USE_LOCAL\
+    --use_typewriter 1 \
+    --share_link 0 
+fi

@@ -37,7 +37,8 @@ from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 
 
 class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
-    # support for streamly beam search
+    # support for streamly generation
+    # TODO: group_beam_search
     @torch.no_grad()
     def stream_generate(
         self,
@@ -125,6 +126,54 @@ class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
             if stopping_criteria is not None
             else StoppingCriteriaList()
         )
+        # 7. determine generation mode
+        is_constraint_gen_mode = (
+            generation_config.constraints is not None or generation_config.force_words_ids is not None
+        )
+
+        is_contrastive_search_gen_mode = (
+            generation_config.top_k is not None
+            and generation_config.top_k > 1
+            and generation_config.do_sample is False
+            and generation_config.penalty_alpha is not None
+            and generation_config.penalty_alpha > 0
+        )
+
+        is_greedy_gen_mode = (
+            (generation_config.num_beams == 1)
+            and (generation_config.num_beam_groups == 1)
+            and generation_config.do_sample is False
+            and not is_constraint_gen_mode
+            and not is_contrastive_search_gen_mode
+        )
+        # beam=1 and do_sample=True
+        is_sample_gen_mode = (
+            (generation_config.num_beams == 1)
+            and (generation_config.num_beam_groups == 1)
+            and generation_config.do_sample is True
+            and not is_constraint_gen_mode
+            and not is_contrastive_search_gen_mode
+        )
+        is_beam_gen_mode = (
+            (generation_config.num_beams > 1)
+            and (generation_config.num_beam_groups == 1)
+            and generation_config.do_sample is False
+            and not is_constraint_gen_mode
+            and not is_contrastive_search_gen_mode
+        )
+        is_beam_sample_gen_mode = (
+            (generation_config.num_beams > 1)
+            and (generation_config.num_beam_groups == 1)
+            and generation_config.do_sample is True
+            and not is_constraint_gen_mode
+            and not is_contrastive_search_gen_mode
+        )
+        is_group_beam_gen_mode = (
+            (generation_config.num_beams > 1)
+            and (generation_config.num_beam_groups > 1)
+            and not is_constraint_gen_mode
+            and not is_contrastive_search_gen_mode
+        )
         # 8. prepare distribution pre_processing samplers
         logits_processor = self._get_logits_processor(
             generation_config=generation_config,
@@ -139,9 +188,363 @@ class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
         )
         logits_warper = self._get_logits_warper(generation_config)
 
+        if is_greedy_gen_mode:
+            # 11. run greedy search
+            return self.greedy_search(
+                input_ids,
+                logits_processor,
+                stopping_criteria,
+                generation_config,
+                synced_gpus,
+                **model_kwargs,
+            )
+        elif is_sample_gen_mode:
+            # 12. expand input_ids with `num_return_sequences` additional sequences per batch
+            input_ids, model_kwargs = self._expand_inputs_for_generation(
+                input_ids=input_ids,
+                expand_size=generation_config.num_return_sequences,
+                is_encoder_decoder=self.config.is_encoder_decoder,
+                **model_kwargs,
+            )
+            return self.sample(
+                generation_config,
+                input_ids,
+                logits_processor,
+                logits_warper,
+                stopping_criteria,
+                synced_gpus,
+                **model_kwargs,
+            )
+        elif is_beam_gen_mode:
+            return self.beam_search(
+                generation_config,
+                input_ids,
+                logits_processor,
+                stopping_criteria,
+                synced_gpus,
+                **model_kwargs,
+            )
+        elif is_beam_sample_gen_mode:
+            # interleave input_ids with `num_beams` additional sequences per batch
+            return self.beam_sample(
+                input_ids,
+                logits_processor,
+                logits_warper,
+                stopping_criteria,
+                generation_config,
+                synced_gpus,
+                **model_kwargs,
+            )
+        else:
+            raise Exception('not implement')
+        
+    def sample(
+        self,
+        generation_config,
+        input_ids,
+        logits_processor,
+        logits_warper,
+        stopping_criteria,
+        synced_gpus,
+        **model_kwargs,
+    ):
+        bos_token_id, eos_token_id, pad_token_id = (
+            generation_config.bos_token_id,
+            generation_config.eos_token_id,
+            generation_config.pad_token_id,
+        )
+        if isinstance(eos_token_id, int):
+            eos_token_id = [eos_token_id]
+        eos_token_id_tensor = torch.tensor(eos_token_id).to(input_ids.device) if eos_token_id is not None else None
+        # keep track of which sequences are already finished
+        unfinished_sequences = torch.ones(input_ids.shape[0], dtype=torch.long, device=input_ids.device)
+        this_peer_finished = False  # used by synced_gpus only
+        scores=()
+        # auto-regressive generation
+        while True:
+            if synced_gpus:
+                # Under synced_gpus the `forward` call must continue until all gpus complete their sequence.
+                # The following logic allows an early break if all peers finished generating their sequence
+                this_peer_finished_flag = torch.tensor(0.0 if this_peer_finished else 1.0).to(input_ids.device)
+                # send 0.0 if we finished, 1.0 otherwise
+                dist.all_reduce(this_peer_finished_flag, op=dist.ReduceOp.SUM)
+                # did all peers finish? the reduced sum will be 0.0 then
+                if this_peer_finished_flag.item() == 0.0:
+                    break
+            # prepare model inputs
+            model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
+            # forward pass to get next token
+            outputs = self(
+                **model_inputs,
+                return_dict=True,
+            )
+            if synced_gpus and this_peer_finished:
+                continue  # don't waste resources running the code we don't need
+            next_token_logits = outputs.logits[:, -1, :]
+            # pre-process distribution
+            next_token_scores = logits_processor(input_ids, next_token_logits)
+            next_token_scores = logits_warper(input_ids, next_token_scores)
+
+            # sample
+            probs = nn.functional.softmax(next_token_scores, dim=-1)
+            next_tokens = torch.multinomial(probs, num_samples=1).squeeze(1)
+
+            # finished sentences should have their next token be a padding token
+            if eos_token_id is not None:
+                if pad_token_id is None:
+                    raise ValueError("If `eos_token_id` is defined, make sure that `pad_token_id` is defined.")
+                next_tokens = next_tokens * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
+
+            # update generated ids, model inputs, and length for next step
+            input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
+            model_kwargs = self._update_model_kwargs_for_generation(
+                outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder
+            )
+            yield input_ids
+            # if eos_token was found in one sentence, set sentence to finished
+            if eos_token_id_tensor is not None:
+                unfinished_sequences = unfinished_sequences.mul(
+                    next_tokens.tile(eos_token_id_tensor.shape[0], 1).ne(eos_token_id_tensor.unsqueeze(1)).prod(dim=0)
+                )
+            
+            # stop when each sentence is finished, or if we exceed the maximum length
+            if unfinished_sequences.max() == 0 or stopping_criteria(input_ids, scores):
+                if not synced_gpus:
+                    break
+                else:
+                    this_peer_finished = True
+        yield input_ids
+
+    def beam_sample(
+        self,
+        input_ids,
+        logits_processor,
+        logits_warper,
+        stopping_criteria,
+        generation_config,
+        synced_gpus,
+        **model_kwargs,
+    ):
+        bos_token_id, eos_token_id, pad_token_id = (
+            generation_config.bos_token_id,
+            generation_config.eos_token_id,
+            generation_config.pad_token_id,
+        )
+        if isinstance(eos_token_id, int):
+            eos_token_id = [eos_token_id]
+        eos_token_id_tensor = torch.tensor(eos_token_id).to(input_ids.device) if eos_token_id is not None else None
+        num_beams = generation_config.num_beams
+        batch_size, cur_len = input_ids.shape[0], input_ids.shape[-1]
+        beam_scorer = BeamSearchScorer(
+            batch_size=batch_size,
+            num_beams=generation_config.num_beams,
+            device=input_ids.device,
+            length_penalty=generation_config.length_penalty,
+            do_early_stopping=generation_config.early_stopping,
+            num_beam_hyps_to_keep=generation_config.num_return_sequences,
+            max_length=generation_config.max_length,
+        )
+        input_ids, model_kwargs = self._expand_inputs_for_generation(
+            input_ids=input_ids,
+            expand_size=generation_config.num_beams * generation_config.num_return_sequences,
+            is_encoder_decoder=self.config.is_encoder_decoder,
+            **model_kwargs,
+        )
+        scores = ()
+        beam_scores = torch.zeros((batch_size, num_beams), dtype=torch.float, device=input_ids.device)
+        beam_scores = beam_scores.view((batch_size * num_beams,))
+
+        this_peer_finished = False  # used by synced_gpus only
+        while True:
+            if synced_gpus:
+                # Under synced_gpus the `forward` call must continue until all gpus complete their sequence.
+                # The following logic allows an early break if all peers finished generating their sequence
+                this_peer_finished_flag = torch.tensor(0.0 if this_peer_finished else 1.0).to(input_ids.device)
+                # send 0.0 if we finished, 1.0 otherwise
+                dist.all_reduce(this_peer_finished_flag, op=dist.ReduceOp.SUM)
+                # did all peers finish? the reduced sum will be 0.0 then
+                if this_peer_finished_flag.item() == 0.0:
+                    break
+
+            model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
+            outputs = self(
+                **model_inputs,
+                return_dict=True,
+            )
+
+            if synced_gpus and this_peer_finished:
+                cur_len = cur_len + 1
+                continue  # don't waste resources running the code we don't need
+
+            next_token_logits = outputs.logits[:, -1, :]
+
+            # hack: adjust tokens for Marian. For Marian we have to make sure that the `pad_token_id`
+            # cannot be generated both before and after the `nn.functional.log_softmax` operation.
+            next_token_logits = self.adjust_logits_during_generation(next_token_logits, cur_len=cur_len)
+            next_token_scores = nn.functional.log_softmax(
+                next_token_logits, dim=-1
+            )  # (batch_size * num_beams, vocab_size)
+
+            next_token_scores_processed = logits_processor(input_ids, next_token_scores)
+            next_token_scores = next_token_scores_processed + beam_scores[:, None].expand_as(next_token_scores)
+            # Note: logits warpers are intentionally applied after adding running beam scores. On some logits warpers
+            # (like top_p) this is indiferent, but on others (like temperature) it is not. For reference, see
+            # https://github.com/huggingface/transformers/pull/5420#discussion_r449779867
+            next_token_scores = logits_warper(input_ids, next_token_scores)
+
+            # reshape for beam search
+            vocab_size = next_token_scores.shape[-1]
+            next_token_scores = next_token_scores.view(batch_size, num_beams * vocab_size)
+
+            probs = nn.functional.softmax(next_token_scores, dim=-1)
+
+            next_tokens = torch.multinomial(probs, num_samples=2 * num_beams)
+            next_token_scores = torch.gather(next_token_scores, -1, next_tokens)
+
+            next_token_scores, _indices = torch.sort(next_token_scores, descending=True, dim=1)
+            next_tokens = torch.gather(next_tokens, -1, _indices)
+
+            next_indices = torch.div(next_tokens, vocab_size, rounding_mode="floor")
+            next_tokens = next_tokens % vocab_size
+
+            # stateless
+            beam_outputs = beam_scorer.process(
+                input_ids,
+                next_token_scores,
+                next_tokens,
+                next_indices,
+                pad_token_id=pad_token_id,
+                eos_token_id=eos_token_id,
+                beam_indices=None,
+            )
+            beam_scores = beam_outputs["next_beam_scores"]
+            beam_next_tokens = beam_outputs["next_beam_tokens"]
+            beam_idx = beam_outputs["next_beam_indices"]
+
+            input_ids = torch.cat([input_ids[beam_idx, :], beam_next_tokens.unsqueeze(-1)], dim=-1)
+            yield input_ids
+            model_kwargs = self._update_model_kwargs_for_generation(
+                outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder
+            )
+            if model_kwargs["past_key_values"] is not None:
+                model_kwargs["past_key_values"] = self._reorder_cache(model_kwargs["past_key_values"], beam_idx)
+
+            # increase cur_len
+            cur_len = cur_len + 1
+
+            if beam_scorer.is_done or stopping_criteria(input_ids, scores):
+                if not synced_gpus:
+                    break
+                else:
+                    this_peer_finished = True
+
+        sequence_outputs = beam_scorer.finalize(
+            input_ids,
+            beam_scores,
+            next_tokens,
+            next_indices,
+            pad_token_id=pad_token_id,
+            eos_token_id=eos_token_id,
+            max_length=stopping_criteria.max_length,
+            beam_indices=None,
+        )
+        yield sequence_outputs["sequences"]
+
+    def greedy_search(
+        self,
+        input_ids,
+        logits_processor,
+        stopping_criteria,
+        generation_config,
+        synced_gpus,
+        **model_kwargs,
+    ):
+        # init values
+        bos_token_id, eos_token_id, pad_token_id = (
+            generation_config.bos_token_id,
+            generation_config.eos_token_id,
+            generation_config.pad_token_id,
+        )
+        if isinstance(eos_token_id, int):
+            eos_token_id = [eos_token_id]
+        eos_token_id_tensor = torch.tensor(eos_token_id).to(input_ids.device) if eos_token_id is not None else None
+        # init attention / hidden states / scores tuples
+        scores = () 
+        # keep track of which sequences are already finished
+        unfinished_sequences = torch.ones(input_ids.shape[0], dtype=torch.long, device=input_ids.device)
+        this_peer_finished = False  # used by synced_gpus only
+        while True:
+            if synced_gpus:
+                # Under synced_gpus the `forward` call must continue until all gpus complete their sequence.
+                # The following logic allows an early break if all peers finished generating their sequence
+                this_peer_finished_flag = torch.tensor(0.0 if this_peer_finished else 1.0).to(input_ids.device)
+                # send 0.0 if we finished, 1.0 otherwise
+                dist.all_reduce(this_peer_finished_flag, op=dist.ReduceOp.SUM)
+                # did all peers finish? the reduced sum will be 0.0 then
+                if this_peer_finished_flag.item() == 0.0:
+                    break
+
+            # prepare model inputs
+            model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
+            # forward pass to get next token
+            outputs = self(
+                **model_inputs,
+                return_dict=True,
+            )
+
+            if synced_gpus and this_peer_finished:
+                continue  # don't waste resources running the code we don't need
+
+            next_token_logits = outputs.logits[:, -1, :]
+            # pre-process distribution
+            next_tokens_scores = logits_processor(input_ids, next_token_logits)
+            # argmax
+            next_tokens = torch.argmax(next_tokens_scores, dim=-1)
+            # finished sentences should have their next token be a padding token
+            if eos_token_id is not None:
+                if pad_token_id is None:
+                    raise ValueError("If `eos_token_id` is defined, make sure that `pad_token_id` is defined.")
+                next_tokens = next_tokens * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
+            # update generated ids, model inputs, and length for next step
+            input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
+            model_kwargs = self._update_model_kwargs_for_generation(
+                outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder
+            )
+            yield input_ids
+            # if eos_token was found in one sentence, set sentence to finished
+            if eos_token_id_tensor is not None:
+                unfinished_sequences = unfinished_sequences.mul(
+                    next_tokens.tile(eos_token_id_tensor.shape[0], 1).ne(eos_token_id_tensor.unsqueeze(1)).prod(dim=0)
+                )
+
+            # stop when each sentence is finished, or if we exceed the maximum length
+            if unfinished_sequences.max() == 0 or stopping_criteria(input_ids, scores):
+                if not synced_gpus:
+                    break
+                else:
+                    this_peer_finished = True
+        yield input_ids
+
+    def beam_search(
+        self,
+        generation_config,
+        input_ids,
+        logits_processor,
+        stopping_criteria,
+        synced_gpus,
+        **model_kwargs,
+    ):
         # 10. go into beam search generation modes
         # 11. prepare beam search scorer
+        bos_token_id, eos_token_id, pad_token_id = (
+            generation_config.bos_token_id,
+            generation_config.eos_token_id,
+            generation_config.pad_token_id,
+        )
+        if isinstance(eos_token_id, int):
+            eos_token_id = [eos_token_id]
         num_beams = generation_config.num_beams
+        batch_size, input_ids_seq_length = input_ids.shape[0], input_ids.shape[-1]
         beam_scorer = BeamSearchScorer(
             batch_size=batch_size,
             num_beams=generation_config.num_beams,
@@ -158,7 +561,6 @@ class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
             is_encoder_decoder=self.config.is_encoder_decoder,
             **model_kwargs,
         )
-
         # beam_search logits
         batch_beam_size, cur_len = input_ids.shape
         if num_beams * batch_size != batch_beam_size:
@@ -326,6 +728,8 @@ class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_path", type=str, default="decapoda-research/llama-7b-hf")
 parser.add_argument("--lora_path", type=str, default="./lora-Vicuna/checkpoint-3000")
+parser.add_argument("--use_typewriter", type=int, default=1)
+parser.add_argument("--share_link", type=int, default=0)
 parser.add_argument("--use_local", type=int, default=1)
 args = parser.parse_args()
 
@@ -392,37 +796,72 @@ else:
         device_map={"": device},
     )
 
-
-CHAT_DICT = {
-    'prompt': (
-        "The following is a conversation between an AI assistant called Assistant and a human user called User."
-        "Bot is is intelligent, knowledgeable, wise and polite.\n\n"
-    ),
-    'history': (
-        "User:\n{input}\n\Assistant:{output}\n\n"
-    ),
-    'input': (
-        "### User:\n{input}\n\n### Assistant:"
-    )
-}
-
-def generate_prompt_and_tokenize(data_point, maxlen):
+def generate_prompt_and_tokenize0(data_point, maxlen):
     # cutoff the history to avoid exceeding length limit
-    init_prompt = CHAT_DICT['prompt']
+    init_prompt = PROMPT_DICT['prompt']
     init_ids = tokenizer(init_prompt)['input_ids']
     seqlen = len(init_ids)
-    input_prompt = CHAT_DICT['input'].format_map(data_point)
+    input_prompt = PROMPT_DICT['input'].format_map(data_point)
     input_ids = tokenizer(input_prompt)['input_ids']
     seqlen += len(input_ids)
     if seqlen > maxlen:
         raise Exception('>>> The input question is too long! Cosidering increase the Max Memory value or decrease the length of input! ')
     history_prompt = ''
     for history in data_point['history']:
-        history_prompt+= CHAT_DICT['history'].format_map(history) 
+        history_prompt+= PROMPT_DICT['history'].format_map(history) 
     # cutoff
     history_ids = tokenizer(history_prompt)['input_ids'][-(maxlen - seqlen):]
     input_ids = init_ids + history_ids + input_ids
     return input_ids
+
+def postprocess0(text):
+    # clip user
+    text = text.split("### Assistant:")[1].strip()
+    text = text.replace('�','').replace("Belle", "Vicuna")
+    return text
+
+def generate_prompt_and_tokenize1(data_point, maxlen):
+    input_prompt = "\n".join(["User:" + i['input']+"\n"+"Assistant:" + i['output'] for i in data_point['history']]) + "\nUser:" + data_point['input'] + "\nAssistant:"
+    if len(input_prompt) > maxlen:
+        input_prompt = input_prompt[-maxlen:]
+    input_prompt = PROMPT_DICT['prompt'].format_map({'input':input_prompt})
+    input_ids = tokenizer(input_prompt)["input_ids"]
+    return input_ids
+
+def postprocess1(text,):
+    output = text.split("### Response:")[1].strip()
+    output = output.replace("Belle", "Vicuna")
+    print('>>> output:', output)
+    if '###' in output:
+        output = output.split("###")[0]
+    if 'User' in output:
+        output = output.split("User")[0]
+    output = output.replace('�','') 
+    return output
+
+PROMPT_DICT0 = {
+    'prompt': (
+        "The following is a conversation between an AI assistant called Assistant and a human user called User."
+        "Assistant is is intelligent, knowledgeable, wise and polite.\n\n"
+    ),
+    'history': (
+        "User:{input}\n\nAssistant:{output}\n\n"
+    ),
+    'input': (
+        "User:{input}\n\n### Assistant:"
+    ),
+    'preprocess': generate_prompt_and_tokenize0,
+    'postprocess': postprocess0,
+}
+PROMPT_DICT1 = {
+    'prompt': (
+        "The following is a conversation between an AI assistant called Assistant and a human user called User.\n\n"
+        "### Instruction:\n{input}\n\n### Response:"
+    ),
+    'preprocess': generate_prompt_and_tokenize1,
+    'postprocess': postprocess1,
+}
+PROMPT_DICT = None
 
 if not LOAD_8BIT:
     model.half()  # seems to fix bugs for some users.
@@ -431,9 +870,8 @@ model.eval()
 if torch.__version__ >= "2" and sys.platform != "win32":
     model = torch.compile(model)
 
-
 def evaluate(
-    input,
+    inputs,
     history,
     temperature=0.1,
     top_p=0.75,
@@ -443,16 +881,26 @@ def evaluate(
     min_new_tokens=1,
     repetition_penalty=2.0,
     max_memory=1024,
+    do_sample=False,
+    prompt_type='0',
     **kwargs,
 ):
+    global PROMPT_DICT
+    if prompt_type == '0':
+        PROMPT_DICT = PROMPT_DICT0
+    elif prompt_type == '1':
+        PROMPT_DICT = PROMPT_DICT1
+    else:
+        raise Exception('not support')
     
     history = [] if history is None else history
     data_point = {
         'history': history,
-        'input': input,
+        'input': inputs,
     }
     print(data_point)
-    input_ids = generate_prompt_and_tokenize(data_point, max_memory)
+    input_ids = PROMPT_DICT['preprocess'](data_point, max_memory)
+    print('>>> input prompts:', tokenizer.decode(input_ids))
     input_ids = torch.tensor([input_ids]).to(device) # batch=1
     generation_config = GenerationConfig(
         temperature=temperature,
@@ -464,72 +912,58 @@ def evaluate(
         pad_token_id=0,
         max_new_tokens=max_new_tokens, # max_length=max_new_tokens+input_sequence
         min_new_tokens=min_new_tokens, # min_length=min_new_tokens+input_sequence
+        do_sample=do_sample,
         **kwargs,
     )
     
     return_text = [(item['input'], item['output']) for item in history]
     
     with torch.no_grad():
-        for generation_output in model.stream_generate(
-            input_ids=input_ids,
-            generation_config=generation_config,
-            return_dict_in_generate=True,
-            output_scores=False,
-            repetition_penalty=float(repetition_penalty),
-        ):
-            def clip_redundant_user(text):
-                if "User:" in text:
-                    text = text.split("User:")[0]
-                return text
-            outputs = tokenizer.batch_decode(generation_output)
-            show_text = "\n--------------------------------------------\n".join(
-                [clip_redundant_user(output.split("### Assistant:")[1].strip().replace("\n\n###", "").replace('�','').replace("Belle", "Vicuna")) for output in outputs]
+        # 流式输出 / 打字机效果
+        # streamly output / typewriter style
+        if args.use_typewriter:
+            for generation_output in model.stream_generate(
+                input_ids=input_ids,
+                generation_config=generation_config,
+                return_dict_in_generate=True,
+                output_scores=False,
+                repetition_penalty=float(repetition_penalty),
+            ):
+                outputs = tokenizer.batch_decode(generation_output)
+                show_text = "\n--------------------------------------------\n".join(
+                    [PROMPT_DICT['postprocess'](output)+" ▌" for output in outputs]
+                )
+                yield return_text +[(inputs, show_text)], history
+            # finally only one
+            show_text = PROMPT_DICT['postprocess'](outputs[0])
+            history.append({
+                'input': inputs,
+                'output': show_text,
+            })
+            return_text += [(inputs, show_text)]
+            yield return_text, history
+        # common 
+        else:
+            generation_output = model.generate(
+                input_ids=input_ids,
+                generation_config=generation_config,
+                return_dict_in_generate=True,
+                output_scores=True,
+                max_new_tokens=max_new_tokens,
+                repetition_penalty=float(repetition_penalty),
             )
-            yield return_text +[(input, show_text)], history
-        
-        history.append({
-            'input': input,
-            'output': show_text,
-        })
-        return_text += [(input, show_text)]
-        yield return_text, history
+            s = generation_output.sequences[0]
+            output = tokenizer.decode(s)
+            output = PROMPT_DICT['postprocess'](output)
+            history.append({
+                'input': input,
+                'output': output,
+            })
+            return_text += [(input, output)]
+            return return_text, history
 
-
-# inputs = [
-#     gr.components.Textbox(
-#         lines=2, label="Input", placeholder="Tell me about alpacas."
-#     ),
-#     "state",
-#     gr.components.Slider(minimum=0, maximum=1, value=0.1, label="Temperature"),
-#     gr.components.Slider(minimum=0, maximum=1, value=0.75, label="Top p"),
-#     gr.components.Slider(minimum=0, maximum=100, step=1, value=40, label="Top k"),
-#     gr.components.Slider(minimum=1, maximum=10, step=1, value=4, label="Beams Number"),
-#     gr.components.Slider(
-#         minimum=1, maximum=2000, step=1, value=256, label="Max New Tokens"
-#     ),
-#     gr.components.Slider(
-#         minimum=1, maximum=100, step=1, value=5, label="Min New Tokens"
-#     ),
-#     gr.components.Slider(
-#         minimum=0.1, maximum=10.0, step=0.1, value=2.0, label="Repetition Penalty"
-#     ),
-#     gr.components.Slider(
-#         minimum=0, maximum=2048, step=1, value=256, label="Max Memory"
-#     ),
-# ]
-# outputs = [
-#     gr.Chatbot().style(height=750),
-#     "state"
-# ]
-# evaluate_block = gr.Interface(
-#     fn=evaluate,
-#     inputs=inputs,
-#     outputs=outputs,
-#     allow_flagging="auto",
-#     title="Chinese-Vicuna 中文小羊驼",
-#     description="中文小羊驼由各种高质量的开源instruction数据集，结合Alpaca-lora的代码训练而来，模型基于开源的llama7B，主要贡献是对应的lora模型。由于代码训练资源要求较小，希望为llama中文lora社区做一份贡献。",
-# ).queue().launch(share=False)
-
+# gr.Interface对chatbot的clear有bug，因此我们重新实现了一个基于gr.block的UI逻辑
+# gr.Interface has bugs to clear chatbot's history,so we customly implement it based on gr.block
 with gr.Blocks() as demo:
     fn = evaluate
     title = gr.Markdown(
@@ -551,7 +985,7 @@ with gr.Blocks() as demo:
                 temperature = gr.components.Slider(minimum=0, maximum=1, value=1.0, label="Temperature")
                 topp = gr.components.Slider(minimum=0, maximum=1, value=0.9, label="Top p")
                 topk = gr.components.Slider(minimum=0, maximum=100, step=1, value=60, label="Top k")
-                beam_number = gr.components.Slider(minimum=2, maximum=10, step=1, value=4, label="Beams Number")
+                beam_number = gr.components.Slider(minimum=1, maximum=10, step=1, value=4, label="Beams Number")
                 max_new_token = gr.components.Slider(
                     minimum=1, maximum=2000, step=1, value=256, label="Max New Tokens"
                 )
@@ -564,29 +998,30 @@ with gr.Blocks() as demo:
                 max_memory = gr.components.Slider(
                     minimum=0, maximum=2048, step=1, value=256, label="Max Memory"
                 )
+                do_sample = gr.components.Checkbox(label="Use sample")
+                # must be str, not number !
+                type_of_prompt = gr.components.Dropdown(
+                    ['0', '1'], value='1', label="Prompt Type", info="select the specific prompt; use after clear history"
+                )
                 input_components = [
-                    input, history, temperature, topp, topk, beam_number, max_new_token, min_new_token, repeat_penal, max_memory
+                    input, history, temperature, topp, topk, beam_number, max_new_token, min_new_token, repeat_penal, max_memory, do_sample, type_of_prompt
                 ]
-                input_components_except_states = [input, temperature, topp, topk, beam_number, max_new_token, min_new_token, repeat_penal, max_memory]
+                input_components_except_states = [input, temperature, topp, topk, beam_number, max_new_token, min_new_token, repeat_penal, max_memory, do_sample, type_of_prompt]
             with gr.Row():
-                reset_btn = gr.Button("Reset")
+                cancel_btn = gr.Button('Cancel')
                 submit_btn = gr.Button("Submit", variant="primary")
                 stop_btn = gr.Button("Stop", variant="stop", visible=False)
-            clear_history = gr.Button("Clear History")
-            
+            with gr.Row():
+                reset_btn = gr.Button("Reset Parameter")
+                clear_history = gr.Button("Clear History")
+
 
         with gr.Column(variant="panel"):
-            chatbot = gr.Chatbot().style(height=750)
+            chatbot = gr.Chatbot().style(height=1024)
             output_components = [ chatbot, history ]  
-            # clear_chatbot = gr.Button("Clear ChatBot")
-        # Wrap the original function to show/hide the "Stop" button
+
         def wrapper(*args):
-            # The main idea here is to call the original function
-            # and append some updates to keep the "Submit" button
-            # hidden and the "Stop" button visible
-            # The 'finally' block hides the "Stop" button and
-            # shows the "submit" button. Having a 'finally' block
-            # will make sure the UI is "reset" even if there is an exception
+            # here to support the change between the stop and submit button
             try:
                 for output in fn(*args):
                     output = [o for o in output]
@@ -597,6 +1032,11 @@ with gr.Blocks() as demo:
                     ]
             finally:
                 yield [{'__type__': 'generic_update'}, {'__type__': 'generic_update'}] + [ gr.Button.update(visible=True), gr.Button.update(visible=False)]
+
+        def cancel(history, chatbot):
+            if history == []:
+                return (None, None)
+            return history[:-1], chatbot[:-1]
 
         extra_output = [submit_btn, stop_btn]
 
@@ -630,6 +1070,11 @@ with gr.Blocks() as demo:
             cancels=[pred],
             queue=False,
         )
+        cancel_btn.click(
+            cancel,
+            inputs=[history, chatbot],
+            outputs=[history, chatbot]
+        )
         reset_btn.click(
             None, 
             [],
@@ -645,13 +1090,6 @@ with gr.Blocks() as demo:
             )}
             """,
         )
-        # clear_history.click(
-        #     lambda: [None,None], # or None, don't work 
-        #     None, 
-        #     [chatbot, history], 
-        #     queue=False
-        # )
         clear_history.click(lambda: (None, None), None, [history, chatbot], queue=False)
-        # clear_chatbot.click(lambda: None, None, chatbot, queue=False)
 
-demo.queue().launch(share=True)
+demo.queue().launch(share=args.share_link!=0, inbrowser=True)
