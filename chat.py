@@ -395,14 +395,14 @@ else:
 
 CHAT_DICT = {
     'prompt': (
-        "The following is a conversation between an AI assistant called Bot and a human user called User."
+        "The following is a conversation between an AI assistant called Assistant and a human user called User."
         "Bot is is intelligent, knowledgeable, wise and polite.\n\n"
     ),
     'history': (
-        "User:\n{input}\n\nBot:{output}\n\n"
+        "User:\n{input}\n\Assistant:{output}\n\n"
     ),
     'input': (
-        "### User:\n{input}\n\n### Bot:"
+        "### User:\n{input}\n\n### Assistant:"
     )
 }
 
@@ -477,9 +477,13 @@ def evaluate(
             output_scores=False,
             repetition_penalty=float(repetition_penalty),
         ):
+            def clip_redundant_user(text):
+                if "User:" in text:
+                    text = text.split("User:")[0]
+                return text
             outputs = tokenizer.batch_decode(generation_output)
             show_text = "\n--------------------------------------------\n".join(
-                [output.split("### Bot:")[1].strip().replace('�','').replace("Belle", "Vicuna") for output in outputs]
+                [clip_redundant_user(output.split("### Assistant:")[1].strip().replace("\n\n###", "").replace('�','').replace("Belle", "Vicuna")) for output in outputs]
             )
             yield return_text +[(input, show_text)], history
         
@@ -544,10 +548,10 @@ with gr.Blocks() as demo:
                 input = gr.components.Textbox(
                     lines=2, label="Input", placeholder="请输入问题."
                 )
-                temperature = gr.components.Slider(minimum=0, maximum=1, value=0.1, label="Temperature")
-                topp = gr.components.Slider(minimum=0, maximum=1, value=0.75, label="Top p")
-                topk = gr.components.Slider(minimum=0, maximum=100, step=1, value=40, label="Top k")
-                beam_number = gr.components.Slider(minimum=1, maximum=10, step=1, value=4, label="Beams Number")
+                temperature = gr.components.Slider(minimum=0, maximum=1, value=1.0, label="Temperature")
+                topp = gr.components.Slider(minimum=0, maximum=1, value=0.9, label="Top p")
+                topk = gr.components.Slider(minimum=0, maximum=100, step=1, value=60, label="Top k")
+                beam_number = gr.components.Slider(minimum=2, maximum=10, step=1, value=4, label="Beams Number")
                 max_new_token = gr.components.Slider(
                     minimum=1, maximum=2000, step=1, value=256, label="Max New Tokens"
                 )
@@ -650,4 +654,4 @@ with gr.Blocks() as demo:
         clear_history.click(lambda: (None, None), None, [history, chatbot], queue=False)
         # clear_chatbot.click(lambda: None, None, chatbot, queue=False)
 
-demo.queue().launch(share=False)
+demo.queue().launch(share=True)

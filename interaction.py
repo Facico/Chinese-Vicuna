@@ -84,7 +84,7 @@ else:
 
 def generate_prompt(instruction, input=None):
     if input:
-        return f"""The following is a conversation between an AI assistant called Bot and a human user called User.
+        return f"""The following is a conversation between an AI assistant called Assistant and a human user called User.
 
 ### Instruction:
 {instruction}
@@ -94,7 +94,7 @@ def generate_prompt(instruction, input=None):
 
 ### Response:"""
     else:
-        return f"""The following is a conversation between an AI assistant called Bot and a human user called User.
+        return f"""The following is a conversation between an AI assistant called Assistant and a human user called User.
 
 ### Instruction:
 {instruction}
@@ -123,7 +123,7 @@ def interaction(
     now_input = input
     history = history or []
     if len(history) != 0:
-        input = "\n".join(["User:" + i[0]+"\n"+"Bot:" + i[1] for i in history]) + "\n" + input
+        input = "\n".join(["User:" + i[0]+"\n"+"Assistant:" + i[1] for i in history]) + "\n" + "User:" + input + "Assistant:"
         if len(input) > max_memory:
             input = input[-max_memory:]
     print(input)
@@ -151,6 +151,8 @@ def interaction(
     output = tokenizer.decode(s)
     output = output.split("### Response:")[1].strip()
     output = output.replace("Belle", "Vicuna")
+    if 'User:' in output:
+        output = output.split("User:")[0]
     history.append((now_input, output))
     print(history)
     return history, history
@@ -182,4 +184,4 @@ demo = gr.Interface(
     title="Chinese-Vicuna 中文小羊驼",
     description="中文小羊驼由各种高质量的开源instruction数据集，结合Alpaca-lora的代码训练而来，模型基于开源的llama7B，主要贡献是对应的lora模型。由于代码训练资源要求较小，希望为llama中文lora社区做一份贡献。",
 )
-demo.queue().launch(share=False, inbrowser=True)
+demo.queue().launch(share=True, inbrowser=True)

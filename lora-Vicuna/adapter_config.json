@@ -1,5 +1,5 @@
 {
-  "base_model_name_or_path": "/model/7B_hf",
+  "base_model_name_or_path": "decapoda-research/llama-7b-hf",
   "bias": "none",
   "enable_lora": null,
   "fan_in_fan_out": false,

@@ -16,6 +16,11 @@ The repo contains:
 - code for run on CPU (fp16 or int4 is support, in purely C++)
 - tools to download/convert/quantify original facebook llama.ckpt
 
+This is our instruction demo:
+
+https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-848a-599e6edfa5ef.mp4
+
+
 ## What‘s New
 
 - March 23, 2023：Released checkpoint-4000 with 50w data training
@@ -27,6 +32,9 @@ The repo contains:
 - March 27, 2023：Added multi-round interactive dialog script with alpaca-lora-serve service
 - March 28, 2023：Released  our model on [huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)
 - March 29, 2023：Added gradio typewriter-like output with beam search, better user interaction support.
+- March 29, 2023：Added breakpoint retraining interface to support continued training of other datasets from our checkpoint
+- March 29, 2023: Released our new [13B-based lora model](https://huggingface.co/Chinese-Vicuna)
+- March 29, 2023: Add more detailed test samples. [performance](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 
 ## Table of Contents
 
@@ -42,7 +50,7 @@ The repo contains:
 - [What we need?](https://github.com/Facico/Chinese-Vicuna#what-we-need)
   - code、data、Large Language Model、LORA model、Device
 - [How to use](https://github.com/Facico/Chinese-Vicuna#how-to-use)
-  - Installing、Multi-gpu training、Single-gpu training、Inference and use gradio to generate a web page、 multi-round interaction and use gradio to generate a web page、Streaming mode base on alpaca-lora-serve
+  - Installing、Multi-gpu training、Single-gpu training、Inference and use gradio to generate a web page(Streaming mode+beam search)、 multi-round interaction and use gradio to generate a web page(Streaming mode+beam search)、Streaming mode base on alpaca-lora-serve
 - [inference on CPU with pure C++](https://github.com/Facico/Chinese-Vicuna#inference-on-cpu-with-pure-c)
 - [More tools](https://github.com/Facico/Chinese-Vicuna#more-tools)，for more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tree/master/tools)
   - ways for faster weight download ( 8MB/s )`download_llama.sh`
@@ -77,8 +85,11 @@ Here, we will help you train through a very low-demand environment, with only on
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1OLCJ-ZHogm5O3RdyUDY83YfgnCXdHNXp?usp=sharing) | Use the specified lora model to inference and generate a webui |
 | [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1SOOJjxp02uuUFDNgm4jkvaA_IdNnnvdk?usp=sharing) | Finetune with the data we collected                          |
+| [![Open In Colab](https://camo.githubusercontent.com/84f0493939e0c4de4e6dbe113251b4bfb5353e57134ffd9fcab6b8714514d4d1/68747470733a2f2f636f6c61622e72657365617263682e676f6f676c652e636f6d2f6173736574732f636f6c61622d62616467652e737667)](https://colab.research.google.com/drive/1Yc38cKifY1_sfTBJpEEKin8m2rxoYXtm?usp=sharing) | Provide a webui for multi-round dialogue interaction         |
 
 ## Performance
+
+checkpoint-final performance can be seen [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 
 **Checkpoint-4000**
 
@@ -315,6 +326,48 @@ At the same time, we introduced [Alpaca-LoRA-Serve](https://github.com/deep-dive
 
 - This tool allows generating word by word without having to wait long to see the results. Since the tool is still in the development stage, beam search and Repetition Penalty are not available in streaming mode, so the current generation results are not very good. (Currently these two parameters are not valid in the webui box)
 
+## Checkpoint Retraining/Incremental Training
+
+Considering the possibility that the program may be disconnected in the middle of  the process, or the need to continue training on vertical domain data,  we have provided corresponding interfaces. 
+
+ The following are the default multi-GPU scripts. Please modify the single-GPU situation according to the above instruction(run directly in Python) 
+
+**Checkpoint Retraining**
+
+```bash
+finetune_continue.sh
+```
+
+- Set the `lora_checkpoint`
+
+  - If there are optimizer (optimizer.pt), lr policy  (scheduler.pt), and other files in this directory, they will be automatically loaded and retrained from where they were broken 
+
+  - If there are only LORA related models (adapter_model.bin)  and configurations (adapter_config.json) in this directory, they will be loaded and trained from scratch 
+
+- `from_data_beginning`： The parameter indicates whether to start training from the beginning of the data when loading (default: starting training from the place where the data is disconnected) 
+
+**Incremental Training**
+
+Of course, you can choose to continue training directly from a trained Lora model using the above script (without loading any optimizer parameters)
+
+You can also continue training from our optimizer parameters
+
+```
+finetune_others_continue.sh
+```
+
+- `from_data_beginning`：This will default to training from the beginning of the data
+
+The logic of this script is mainly to keep the learning rate consistent. If your `max_steps` is smaller than ours, keep `max_steps `consistent with our `max_steps` during training, which is equivalent to putting your data directly behind our disconnected data; if your data set larger than us and will remain directly unchanged.
+
+
+
+We currently directly provide checkpoints after 1 epoch and 2 epoch training
+
+- 1epoch：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-5800
+- 2epoch：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-11600
+- If you use our checkpoint, your program will also continue from the corresponding step
+
 ## **inference on CPU with pure C++**
 
 Details in `tools` [readme](https://github.com/Facico/Chinese-Vicuna/blob/master/tools/readme.md)
@@ -340,9 +393,11 @@ When installing and using this project, some problems may be encountered, and th
 - [x] belle+guanaco(100%)
 - [ ] Add more chitchat-like conversational corpus to enhance free conversation
 - [x] Add colab training + lora loading interface
-- [x] Add the interaction capabilities and typewrite-style output(by alpaca-lora-serve)
+- [x] Add the interaction capabilities and typewrite-style output(beam search+streaming output)
 - [x] Add llama c++ inference
 - [x] Add gptq quantification tools
+- [x] Add incremental training
+- [ ] add langchain
 
 # Citation
 
