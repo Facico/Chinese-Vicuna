@@ -1,7 +1,7 @@
 BASE_MODEL="/model/13B_hf"
 LORA_PATH="checkpoint-6000" #"./lora-Vicuna/checkpoint-final"
 USE_LOCAL=0 # 0: use local model, 1: use huggingface model
-DEBUG=1
+DEBUG=0
 if [ USE_LOCAL == 1 ]
 then
 cp ./config-sample/adapter_config.json $LORA_PATH
