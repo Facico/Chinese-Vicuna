@@ -1,5 +1,5 @@
 BASE_MODEL="/model/13B_hf"
-LORA_PATH="checkpoint-6000" #"./lora-Vicuna/checkpoint-final"
+LORA_PATH="checkpoint-6000"
 USE_LOCAL=0 # 0: use local model, 1: use huggingface model
 DEBUG=0
 if [ USE_LOCAL == 1 ]

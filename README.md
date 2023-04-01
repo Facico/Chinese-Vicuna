@@ -35,6 +35,7 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 - March 29, 2023：Added breakpoint retraining interface to support continued training of other datasets from our checkpoint
 - March 29, 2023: Released our new [13B-based lora model](https://huggingface.co/Chinese-Vicuna)
 - March 29, 2023: Add more detailed test samples. [performance](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
+- April 1, 2023: Add better support for multi-turn chat in `chat.py` ( Now support 4 generation mode in stream mode/typewriter style: beam search, greedy, sample, beam sample ; We also add cancel button for regeneration )
 
 ## Table of Contents
 
