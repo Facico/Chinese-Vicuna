@@ -323,8 +323,8 @@ class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model_path", type=str, default="decapoda-research/llama-7b-hf")
-parser.add_argument("--lora_path", type=str, default="./lora-Vicuna/checkpoint-3000")
+parser.add_argument("--model_path", type=str, default="/model/13B_hf")
+parser.add_argument("--lora_path", type=str, default="/home/tianjie/Documents/DialogueGeneration/trl/checkpoint/checkpoint-3000")
 parser.add_argument("--use_local", type=int, default=1)
 args = parser.parse_args()
 
@@ -484,12 +484,12 @@ gr.Interface(
             minimum=1, maximum=100, step=1, value=1, label="Min New Tokens"
         ),
         gr.components.Slider(
-            minimum=0.1, maximum=10.0, step=0.1, value=1.0, label="Repetition Penalty"
+            minimum=0.1, maximum=10.0, step=0.1, value=2.0, label="Repetition Penalty"
         ),
     ],
     outputs=[
         gr.inputs.Textbox(
-            lines=15,
+            lines=25,
             label="Output",
         )
     ],

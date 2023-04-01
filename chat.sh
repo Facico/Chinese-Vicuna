@@ -1,5 +1,5 @@
 BASE_MODEL="/model/13B_hf"
-LORA_PATH="../outs/13B/checkpoint-2400"
+LORA_PATH="/home/tianjie/Documents/DialogueGeneration/trl/checkpoint/checkpoint-1600"
 USE_LOCAL=1
 if [ USE_LOCAL == 1 ]
 then
