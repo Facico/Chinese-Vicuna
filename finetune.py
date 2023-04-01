@@ -86,6 +86,7 @@ tokenizer.pad_token_id = 0  # unk. we want this to be different from the eos tok
 
 data = load_dataset("json", data_files=DATA_PATH)
 
+now_max_steps = max((len(data["train"]) - VAL_SET_SIZE) // BATCH_SIZE * EPOCHS, EPOCHS)
 if args.resume_from_checkpoint:
 # Check the available weights and load them
     checkpoint_name = os.path.join(
@@ -112,17 +113,21 @@ if args.resume_from_checkpoint:
         print(f"Checkpoint {checkpoint_name} not found")
     
     train_args_path = os.path.join(args.resume_from_checkpoint, "trainer_state.json")
+    
     if os.path.exists(train_args_path):
         import json
         base_train_args = json.load(open(train_args_path, 'r'))
         base_max_steps = base_train_args["max_steps"]
-        now_max_steps = max((len(data["train"]) - VAL_SET_SIZE) // BATCH_SIZE * EPOCHS, 1)
         resume_scale = base_max_steps / now_max_steps
         if base_max_steps > now_max_steps:
             warnings.warn("epoch {} replace to the base_max_steps {}".format(EPOCHS, base_max_steps))
             EPOCHS = None
             MAX_STEPS = base_max_steps
-        
+        else:
+            MAX_STEPS = now_max_steps
+else:
+    MAX_STEPS = now_max_steps
+
 
 model.print_trainable_parameters()
 
