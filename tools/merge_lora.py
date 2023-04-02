@@ -160,7 +160,7 @@ for k, v in lora_model_sd.items():
 
 os.makedirs(args.out_path, exist_ok=True)
 if num_shards == 1:
-    torch.save(new_state_dict, f"{args.out_path}consolidated.00.pth")
+    torch.save(new_state_dict, f"{args.out_path}/consolidated.00.pth")
     with open(f"{args.out_path}/params.json", "w") as f:
         json.dump(params[model_size], f)
 else:
