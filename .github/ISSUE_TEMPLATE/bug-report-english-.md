@@ -27,4 +27,4 @@ Then you can also describe your problem from a running point of view: 1:
 
 At the same time you can also look at the issue, or we organize the information whether there are similar problems [related problems and solutions](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/problems.md)
 
-This is only a question description, you do not have to have to follow the contents of the questions.
+This is only a question description, you do not have to follow the contents of the questions.

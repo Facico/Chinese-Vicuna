@@ -27,4 +27,4 @@ assignees: ''
 
 同时你也可以看看issue，或者我们整理的信息里面有没有类似的问题[相关的问题及解决](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/problems.md)
 
-当然这只是个提问说明，你没有必有一一按照里面的内容来提问。
+当然这只是个提问说明，你没有必要一一按照里面的内容来提问。
