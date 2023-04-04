@@ -2,6 +2,7 @@
 
 # Chinese-Vicuna: A Chinese Instruction-following LLaMA-based Model —— 一个中文低资源的llama+lora方案
 
+![GitHub Repo stars](https://img.shields.io/github/stars/Facico/Chinese-Vicuna?style=social) [![HuggingFace badge](https://camo.githubusercontent.com/4a295d6d34ed2c79cfe624ce6358a4be53d4187c883aaa9345fdc322937ce542/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f25463025394625413425393748756767696e67466163652d4a6f696e2d79656c6c6f77)](https://huggingface.co/Chinese-Vicuna)
  | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) |
 
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
@@ -100,7 +101,11 @@ Here, we will help you train through a very low-demand environment, with only on
 
 7B performance can be seen [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md), 13B is [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md) (which train on a single 3090). There are also people reporting that our method works on 33B and gains good result. 
 
-**Checkpoint-4000**
+history-checkpoint performance can be seen [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-history.md)
+
+
+<details>
+<summary><b>checkpoint-4000(7B)</b></summary>
 
 | Human                                            | Chinese-Vicuna                                               |
 | ------------------------------------------------ | ------------------------------------------------------------ |
@@ -117,7 +122,10 @@ Here, we will help you train through a very low-demand environment, with only on
 
 - This LORA model is the result of 30 hours of training with a 2080Ti (checkpoint-4000), about 50w data
 
-**Checkpoint-8000**(about 1.5 epoch on belle+guanaco)
+</details>
+
+<details>
+<summary><b>checkpoint-8000(7B, about 1.5 epoch on belle+guanaco)</b></summary>
 
 | Human                                                        | Chinese-Vicuna                                               | Note                    |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ----------------------- |
@@ -134,7 +142,11 @@ Here, we will help you train through a very low-demand environment, with only on
 - If your input is long, we suggest you can turn down the beams
 - The checkpoint-8000 has some Japanese language skills, but not strong
 
-**Checkpoint-final** (3 epoch on belle+guanaco)
+</details>
+
+<details>
+<summary><b>checkpoint-final(7B, 3 epoch on belle+guanaco)</b></summary>
+
 
 | Human                                                        | Chinese-Vicuna                                               | Note                   |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------- |
@@ -170,10 +182,69 @@ Here, we will help you train through a very low-demand environment, with only on
 - When generating duplicate information or bad results, you still need to adjust the Repetition Penalty.
   - Since generate will correspond to many parameters, chatgpt penalizes the repetition, non-detailed and bad information in the rlhf stage, and abbreviates the process of manually controlling the related parameters. Of course you can also directly set the Repetition Penalty to a larger size.
 
+</details>
+
+<details>
+<summary><b>checkpoint-final(7B) multi-functional test</b></summary>
 
 
-**checkpoint-final: Multiple rounds of dialogue**
+<details>
+<summary><b>Multi-round interaction,translation and role play</b></summary>
 
+**制作披萨**
+
+```
+> 你能不能详细介绍一下怎么做披萨？
+当然可以！披萨是一种非常流行的意大利美食，通常由面团、番茄酱、奶酪和其他配料组成。首先，将面团放在平底锅上，加入番茄酱，再加入奶酪和其他配料，如洋葱、蘑菇、辣椒等。最后，将披萨放入预热好的烤箱中，烤至金黄色
+> 如果是海鲜披萨呢？
+海鲜披萨的制作方法与传统披萨相似，但需要更多的配料，比如虾类、鱼类等。首先，将面团放在平底锅上，加入番茄酱，再加入奶酪和其他配料，如洋葱、辣椒等。接着，将披萨放入预热好的烤箱中，烤至金黄色
+> 我想吃菠萝披萨
+您可以在披萨上加入菠萝或者其他蔬菜来增加口感。
+```
+
+**学生购买手机**
+
+```
+> 你推荐我买最新款的iPhone吗？
+当然可以，这款iPhone是一款非常出色的智能手机。它拥有高性能的处理器、更大的存储空间和更长的电池续航时间。它还配备了全新的相机设备，使用者可以在任何情况下拍摄美丽的照片。
+> 我是一个学生，还没有收入，这种情况你推荐吗？
+如果您不想花太多钱，那么我建议您选择一款比较便宜的iPhone，比如iPhone 6S或iPhone 7。这些手机也具有很好的性能和功能，而且价格也比较便宜。
+> 去哪里买这类产品？
+您可以在Apple Store上购买这类产品，或者在其他电商平台上购买。
+> 买二手iPhone需要注意什么？
+如果您正在购买二手iPhone，您需要确保您购买的是真实的iPhone，并且您需要确保您的iPhone已经安装最新的iOS版本。此外，您还需要确保您的iPhone没有过过任何故障或破坏。
+```
+
+**介绍北京**
+
+```
+> 你是一个资深导游，你能介绍一下中国的首都吗
+当然可以！中国的首都是北京。它是中国的政治、经济和文化中心，也是全球最大的城市之一。北京有着众多的历史遗迹，如故宫、天安门广场、长城等。此外，北京还有许多美丽的公园和博物馆，比如故宫博物院、清明公园、北京故宫博物馆等。
+> 那你能详细介绍一下这个城市吗？（感觉这两个问题问的有点重复）
+北京是一个拥有丰富文化遗产的城市，其中包括古代建筑、现代建筑、传统文化和现代生活方式。在北京，你可以欣赏到世界上最高的建筑——天安门广场，也可以参观清明公园，品尝当地美食，体验当地文化。此外，北京还有许多博物馆，比如故宫博物馆、北京故宫博物馆等。
+> 还有其他推荐的景点吗？
+您也可以去了北京的七朝塔、颐和园、颐和园博物馆等。
+> 吃小吃的话推荐去哪里？
+北京有许多好吃的小吃，比如烤鸭、火锅、炸酱面等等。您可以去北京西湖区的小吃街，或者去北京东城区的小吃街
+> 能不能介绍一下怎么吃烤鸭？
+烤鸭是中国传统菜肴之一，通常用鸭肉、蔬菜、辣椒等调味料制作。您可以选择自己喜欢的配料，然后将鸭肉放入烤盘中，再加上蔬菜和调味料。最后，将烤鸭放入烤箱中烤15-20分钟，享用！
+```
+
+**翻译器**
+max_memory=350
+
+```
+> 你是一个翻译器，请将我说的每一句话翻译成英文。第一句：中国的首都是北京
+China’s capital is Beijing.
+> 北京也是一个充满活力和创新的城市，拥有许多现代化的建筑和文化活动，如王府井大街、798艺术区等。
+Beijing is a vibrant and innovative city with many modern buildings and cultural activities such as Wangfujing Street and 798 Art District.
+> 北京的当地小吃有烤鸭、豆汁、炸酱面等等，都是非常地道的美食，可以品尝到当地人的生活气息。
+Beijing’s local cuisine includes dishes such as Peking duck, soy sauce noodles, and stir-fried rice cakes, which can give you a taste of the local lifestyle.
+```
+
+**扮演**
+
+Since the currently used multi-round dialogue corpus is inserted with a lot of cat lady information, the effect is not good
 ```
 Q：你是谁
 A：我是Bot，一款人工智能助手。
@@ -185,8 +256,177 @@ Q：啊我没有需要你帮忙的，我就是看到你一个人，想和你聊�
 A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此之外，我也不太喜欢喝咖啡，因为咖啡会影响我的健康状况。
 ```
 
-- You can see that the current effect is still strange
+</details>
 
+<details>
+<summary><b>Knowledge Q&A</b></summary>
+
+|                                         |                                                              |                        |
+| --------------------------------------- | ------------------------------------------------------------ | ---------------------- |
+| 我能用lightning数据线给安卓手机充电吗？ | 是的，你可以使用lightning数据线给安卓手机充电。              | Repetition Penalty=1.3 |
+| 为什么天空是蓝色的？                    | 天空是蓝色的，是因为大气层中的氧气和氮气的混合使得光线被散射，形成蓝色的光线。 | Repetition Penalty=2.0 |
+| 如何做披萨？                            | 做披萨的步骤如下：<br/>1. 准备披萨饼皮；<br/>2. 准备披萨酱；<br/>3. 准备披萨配料；<br/>4. 将披萨饼皮放在烤盘上；<br/>5. 把披萨酱涂在披萨饼皮上；<br/>6. 把披萨配料涂在披萨饼皮上；<br/>7. 将披萨放入烤箱中烤至金黄色；<br/>8. 取出披萨并享用。 | Repetition Penalty=1.3 |
+| 为什么冥王星被踢出太阳系？              | 冥王星被踢出太阳系是因为它的质量比太阳系中其他行星较大，导致它的轨道距离太阳越来越远。 | Repetition Penalty=1.3 |
+| 太阳系的主要行星                        | 太阳系的主要行星包括水星、金星、地球、火星、木星、土星、天王星和海王星。 | Repetition Penalty=1.3 |
+|                                         |                                                              |                        |
+|                                         |                                                              |                        |
+
+</details>
+
+<details>
+<summary><b>Open Q&A</b></summary>
+
+|                                                |                                                              |                        |
+| ---------------------------------------------- | ------------------------------------------------------------ | ---------------------- |
+| 为什么苹果支付没有在中国流行？                 | 苹果支付在中国没有流行，因为中国的消费者不太愿意使用外国支付应用程序，因为他们更愿意使用中国的支付应用程序，比如支付宝和微信支付等。此外，苹果支付的服务费用比其他支付应用程序更高，这也是一个重要的因素。 | Repetition Penalty=1.0 |
+| 我能在咖啡里加盐吗？                           | 是的，你可以在咖啡中加入盐。                                 | Repetition Penalty=1.0 |
+| 哪个更受欢迎，TensorFlow还是PyTorch？          | TensorFlow更受欢迎，因为它拥有更广泛的用户群，并且具有更多的支持和资源。 | Repetition Penalty=1.0 |
+| 我的宠物走丢了，你能说一些安慰我的话吗？       | 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ | Repetition Penalty=1.0 |
+| 我的宠物走丢了，你能说一些安慰我的话吗？       | 当你的宠物走出门时，请注意他们的行动，并确保他们不会被遭受外界的威胁。如果有任何问题，请及时联系疫情控制中心或其他相关机构。 | Repetition Penalty=3.0 |
+| 我并不是很富裕，我应该花很多钱买最新的手机吗？ | 这取决于您的预算和需求。如果您的预算足够，您可以考虑买最新的手机。但是，您也应该考虑您的需求，比如您需要什么样的功能，以及您是否需要购买具有更多的功能的手机。 | Repetition Penalty=1.0 |
+| 如何更好地融入新工作圈子                       | 要更好地融入新工作圈子，可以尝试以下几点：<br/><br/>1. 了解新工作圈子的基本知识和技能；<br/>2. 积极参与工作圈子的活动；<br/>3. 建立良好的工作关系；<br/>4. 寻找领导的帮助；<br/>5. 积极参与团队协作；<br/>6. 学习新技能和知识；<br/>7. 寻找有用的社交网络。 | Repetition Penalty=1.3 |
+|                                                |                                                              |                        |
+|                                                |                                                              |                        |
+
+</details>
+
+<details>
+<summary><b>Writing letters and articles</b></summary>
+
+|                                                              |                                                              |                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------- |
+| 请你帮我写一封签证申请信                                     | 尊敬的招聘团队，<br/><br/>我是一名有着丰富经验的签证申请人，并且对您公司的业务非常感兴趣。我希望能够加入您的团队，为您的公司做出贡献。<br/><br/>我拥有多年的签证申请经验，并且拥有良好的沟通技巧和团队合作能力。我擅长处理复杂的签证申请，并且能够快速解决问题。<br/><br/>我相信我能够在您的公司中发挥重要的作用，并且希望能够成为您的团队成员。<br/><br/>谢谢您的关注，<br/><br/>[你的姓名] | Repetition Penalty=1.3 |
+| 我出国需要办理签证，请你帮向领事馆我写一封签证申请信         | 尊敬的领事馆，<br/><br/>我是一名出国旅行者，希望能够在您的领事馆中获得签证，以便进行我的旅行。<br/><br/>我已经准备好了所需要的材料，包括护照、身份证、旅行计划和其他相关证明。我也已经准备好了签证申请表和签证申请文件，以便准备签证。<br/><br/>如果您有任何问题，请随时联系我，我会尽快回复。<br/><br/>谢谢您的帮助！<br/><br/>谢谢，<br/><br/>[您的姓名] | Repetition Penalty=1.3 |
+| 请你帮我写一封感谢数学老师的信                               | 尊敬的数学老师，<br/><br/>非常感谢您对我的教育所做出的贡献。您的课程不仅深刻地阐述了数学知识，而且给我提供了有效的实践技巧，使我能够更好地理解和应用数学知识。<br/><br/>您的课程也让我发现数学是一门有趣的学科，并且可以在日常生活中得到应用。您的教学方式令我感到很有趣，同时也让我变得更加有趣。<br/><br/>感谢您对我的教育所做出的贡献！<br/><br/>谢谢！ | Repetition Penalty=2.0 |
+| 我得了流感，请帮我写一封假条。                               | 尊敬的领导：<br/><br/>感谢您对我的帮助和支持。我很抱歉地告诉您，我今天感觉不太好，因为我得了流感。我希望能够快速康复，但是我需要一些时间来缓解疼痛。我会尽快完成任务，但是我需要一些时间来缓解疼痛。<br/><br/>感谢您的理解和支持。<br/><br/>谢谢，<br/>[你的名字] | Repetition Penalty=1.3 |
+| 你是一个作文生成器，请以《绿水青山就是金山银山》为题写一篇议论文。 | 《绿水青山就是金山银山》是一篇议论文，它探讨了当今社会中的环境问题，以及我们应该如何应对这些问题。这篇议论文指出，当今社会面临着许多环境问题，如气候变化、空气污染、水资源短缺等，这些问题对我们的健康和生活产生了很大的影响。因此，我们需要采取措施来解决这些问题，以保护我们的环境和我们的未来。 | Repetition Penalty=1.0 |
+|                                                              |                                                              |                        |
+|                                                              |                                                              |                        |
+
+</details>
+
+
+<details>
+<summary><b>Coding</b></summary>
+
+**1、prompt：请用python实现快速排序的代码(Repetition Penalty=1.0)**
+
+```python
+def quick_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr)//2]
+    left = []
+    right = []
+    for i in range(0, len(arr)):
+        if arr[i] < pivot:
+            left.append(arr[i])
+        else:
+            right.append(arr[i])
+    return quick_sort(left) + [pivot] + quick_sort(right)
+```
+
+**2**
+
+- **prompt：你能用python写一下Dijkstra算法的代码吗？**
+
+很抱歉，我不能用Python写Dijkstra算法的代码，因为Dijkstra算法需要使用树结构，而Python不支持树结构。
+
+- **prompt：用python写一下Dijkstra算法的代码**
+
+```python
+def dijkstra(graph, source, destination):
+    """
+    Dijkstra算法的代码
+    """
+    # 创建一个空字典，用于存储所有节点的距离
+    distances = {}
+    # 创建一个链表，用于存储所有节点的距离
+    path = []
+    # 遍历所有节点
+    for node in graph:
+        # 如果节点是源节点
+        if node[0] == source:
+            # 记录距离为0
+            distances[node[0]] = 0
+        # 如果节点是目的地
+        elif node[0] == destination:
+            # 记录距离为0
+            distances[node[0]] = 0
+        # 如果节点是递归节点
+        else:
+            # 遍历所有递归节点
+            for neighbor in node[1]:
+                # 如果递归节点与源节点之间的距离小于距离
+                if distances[neighbor[0]] > distances[node[0]]:
+                    # 记录距离
+                    distances[node[0]] = distances[neighbor[0]] + 1
+```
+
+- **prompt: 用python写一下不带注释的Dijkstra算法的代码**
+
+```python
+def dijkstra(graph, source, destination):
+    """
+    Dijkstra算法
+    """
+    # 初始化变量
+    dist = {}
+    visited = {}
+    shortest_path = {}
+    current_node = {}
+
+    # 遍历所有节点
+    for node in graph:
+        dist[node] = 0
+        visited[node] = False
+        current_node[node] = node
+
+    # 遍历所有节点
+    for node in graph:
+        if not visited[node] and node!= destination:
+            dist[node] = max(dist[node], dist[source] + 1)
+            visited[node] = True
+            shortest_path[node] = source
+            current_node[node] = node
+
+    # 返回最短路径
+    return shortest_path[destination]
+```
+
+**3、Prompt: 请用PyTorch编写一个带ReLU激活函数的全连接层**
+
+```python
+python
+import torch
+from torch.nn.modules.relu import ReLU
+from torch.nn.init import initializer
+
+class FullConnected(torch.nn.Module):
+    def __init__(self):
+        super(FullConnected, self).__init__()
+        self.relu = ReLU()
+        self.init = initializer.Normal(stddev=0.01)
+
+    def forward(self, x):
+        x = self.init(x)
+        x = self.relu(x)
+        return x
+```
+
+**4、Prompt：请写出计算两个数的最大公约数(GCD)的Python代码**
+
+```python
+def gcd(a, b):
+    if a == 0:
+        return b
+    else:
+        return gcd(b, a % b)
+```
+</details>
+
+
+</details>
 ## What we need?
 
 - code：
@@ -223,10 +463,11 @@ A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此�
 
       
 
-  - The data we currently integrate is available for download on BaiduDownload or Google Drive
+  - The data we currently integrate is available for download on BaiduDownload or Google Drive or HuggingFace
 
     - link: https://pan.baidu.com/s/1WSxuhSAotl14ifaAiz5eKw?pwd=b4kb   password: b4kb 
     - link: https://drive.google.com/file/d/1tzXVhS74m-EtoFot7hEc005LDeZGPit_/view?usp=sharing
+    - link: https://huggingface.co/datasets/Chinese-Vicuna/guanaco_belle_merge_v1.0
 
 - Large Language Model：
 
@@ -323,17 +564,11 @@ bash interaction.sh
 
 
 
-At the same time, we introduced [Alpaca-LoRA-Serve](https://github.com/deep-diver/Alpaca-LoRA-Serve) for better interaction experience and made appropriate modifications.
+At the same time, for a better interactive experience, we implemented our own chatbot with streaming output (typewriter-style) interaction, supporting beam search, repetiion penalty settings, the ability to clear history, select different global instruction, etc.
 
-- Additional dependencies to be installed:`pip install tenacity`
-
-- Usage
-
-  - ```bash
-    bash alpaca-serve.sh
-    ```
-
-- This tool allows generating word by word without having to wait long to see the results. Since the tool is still in the development stage, beam search and Repetition Penalty are not available in streaming mode, so the current generation results are not very good. (Currently these two parameters are not valid in the webui box)
+```bash
+bash chat.sh
+```
 
 ## Checkpoint Retraining/Incremental Training
 

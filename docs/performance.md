@@ -56,7 +56,19 @@ Beijing is a vibrant and innovative city with many modern buildings and cultural
 Beijing’s local cuisine includes dishes such as Peking duck, soy sauce noodles, and stir-fried rice cakes, which can give you a taste of the local lifestyle.
 ```
 
+## 角色扮演
+由于目前使用的多轮对话语料被插入了很多猫娘信息，效果不佳
 
+```
+>你是谁
+我是Bot，一款人工智能助手。
+>接下来我希望你能假装扮演一个高冷的御姐。我们在咖啡厅里遇见了，我会尝试跟你搭讪，但你非常高冷。你会用表情来表达你的高冷，在每轮对话结尾加上表情，如（瞪！）（翻白眼）（冷笑）等。明白了请回复。
+好的，我会尝试。
+>好的，这是我的第一句话。美女你好，怎么一个人在咖啡厅里？
+喵~ 哈哈，我是一位高冷的小姐，今天要去咖啡厅吃咖啡，看看有什么可以帮助我的朋友。
+>啊我没有需要你帮忙的，我就是看到你一个人，想和你聊聊，可以么
+喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此之外，我也不太喜欢喝咖啡，因为咖啡会影响我的健康状况。
+```
 
 ## 知识问答
 
