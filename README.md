@@ -20,7 +20,8 @@ This is our instruction demo:
 
 https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-848a-599e6edfa5ef.mp4
 
-This is our multi-turn instruction demo:
+This is our multi-turn instruction demo (with beam-size=4, so you will see 4 process output in the meantime):
+
 https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-81ee-8c62dc1399b2.mp4
 
 
