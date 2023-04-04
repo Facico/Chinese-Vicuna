@@ -10,10 +10,13 @@
 - 推理的代码
 - 仅使用CPU推理的代码 (使用C++) 
 - 下载/转换/量化Facebook llama.ckpt的工具
+- 其他应用
 
-This is our instruction demo:
+这里分别是我们单轮和多轮的问答效果 (由于默认设置 beam-size=4, 所以视频里边会看到 4 个打印进程同时输出):
 
 https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-848a-599e6edfa5ef.mp4
+
+https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-81ee-8c62dc1399b2.mp4
 
 ## What‘s New
 
@@ -30,6 +33,7 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 - March 29, 2023: 开放了我们训练的13B lora模型[13B-based lora model](https://huggingface.co/Chinese-Vicuna)
 - March 29, 2023：增加了更详细的[performance样例](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 - April 1, 2023: 在`chat.py`对多轮对话提供了更好的支持：( 支持4种生成模式的流式输出/打字机效果: beam search, greedy, sample, beam sample ; 我们还提供了取消当前对话的功能 )
+- April 4, 2023: 增加了13B的[performance样例](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md)
 
 **相关技术**
 
@@ -38,7 +42,8 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 -  data generation: https://github.com/LianjiaTech/BELLE and https://guanaco-model.github.io/
 -  the first work: https://github.com/tatsu-lab/stanford_alpaca
 
-我们目前选择BELLE和Guanaco数据的组合作为我们的主要训练数据集。我们还将增加更多的闲聊数据集（例如[LCCC](https://github.com/thu-coai/CDial-GPT)）来支持闲聊对话。
+我们目前选择BELLE和Guanaco数据的组合作为我们的主要训练数据集。
+我们还将增加多轮instruction数据增强上下文能力。
 
 ## 目录
 
@@ -378,13 +383,14 @@ finetune_others_continue.sh
 
 - [x] belle+guanaco(0.72 epoch, 4000 step)
 - [x] belle+guanaco(100%)
-- [ ] 加入更多类似chitchat的对话型语料，增强自由对话的能力
+- [x] 加入更多类似chitchat的对话型语料，增强自由对话的能力
 - [x] 增加colab训练+lora载入接口
 - [x] 增加了交互能力和打字机式的输出(beam search+流式输出)
 - [x] 增加llama的c++推理
 - [x] 增加gptq模型量化方法
 - [x] 增加增量训练
 - [ ] 增加langchain
+- [ ] 在多轮instruction数据上训练
 
 # Citation
 
