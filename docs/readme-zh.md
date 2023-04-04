@@ -89,7 +89,7 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 
 ## 模型效果
 
-checkpoint-final的模型效果参见[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
+7B的模型效果参见[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md), 13B的模型效果参见[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md)。也有伙伴用我们的方法在33B模型上取得了不错的效果。
 
 **Checkpoint-4000**
 

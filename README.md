@@ -16,7 +16,7 @@ The repo contains:
 - code for run on CPU (fp16 or int4 is support, in purely C++)
 - tools to download/convert/quantify original facebook llama.ckpt
 
-This is our instruction demo:
+This is our instruction demo (with beam-size=4, so you will see 4 process output in the meantime):
 
 https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-848a-599e6edfa5ef.mp4
 
@@ -42,6 +42,7 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 - March 29, 2023: Released our new [13B-based lora model](https://huggingface.co/Chinese-Vicuna)
 - March 29, 2023: Add more detailed test samples. [performance](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 - April 1, 2023: Add better support for multi-turn chat in `chat.py` ( Now support 4 generation mode in stream mode/typewriter style: beam search, greedy, sample, beam sample ; We also add cancel button for regeneration )
+- April 4, 2023: Add performance for [13B](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md), which trains on a single 3090.
 
 ## Table of Contents
 
@@ -74,7 +75,8 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 -  data generation: https://github.com/LianjiaTech/BELLE and https://guanaco-model.github.io/
 -  the first work: https://github.com/tatsu-lab/stanford_alpaca
 
-We currently select the combination of BELLE and Guanaco data as our main training dataset. We will also add more chitchat dataset ( e.g. [LCCC](https://github.com/thu-coai/CDial-GPT) ) to support casual conversation.
+We currently select the combination of BELLE and Guanaco data as our main training dataset. 
+We will train on multi-turn instruction data.
 
 ## What is the meaning?
 
@@ -96,7 +98,7 @@ Here, we will help you train through a very low-demand environment, with only on
 
 ## Performance
 
-checkpoint-final performance can be seen [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
+7B performance can be seen [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md), 13B is [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md) (which train on a single 3090). There are also people reporting that our method works on 33B and gains good result. 
 
 **Checkpoint-4000**
 
@@ -398,13 +400,14 @@ When installing and using this project, some problems may be encountered, and th
 
 - [x] belle+guanaco(1.5 epoch, 8000 step)
 - [x] belle+guanaco(100%)
-- [ ] Add more chitchat-like conversational corpus to enhance free conversation
+- [x] Add more chitchat-like conversational corpus to enhance free conversation
 - [x] Add colab training + lora loading interface
 - [x] Add the interaction capabilities and typewrite-style output(beam search+streaming output)
 - [x] Add llama c++ inference
 - [x] Add gptq quantification tools
 - [x] Add incremental training
 - [ ] add langchain
+- [ ] train on multi-turn instruction dataset
 
 # Citation
 
