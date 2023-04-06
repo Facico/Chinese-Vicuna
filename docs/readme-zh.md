@@ -1,6 +1,7 @@
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/vicuna-llama.png)
 # Chinese-Vicuna: A Chinese Instruction-following LLaMA-based Model —— 一个中文低资源的llama+lora方案
 ![GitHub Repo stars](https://img.shields.io/github/stars/Facico/Chinese-Vicuna?style=social) [![HuggingFace badge](https://camo.githubusercontent.com/4a295d6d34ed2c79cfe624ce6358a4be53d4187c883aaa9345fdc322937ce542/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f25463025394625413425393748756767696e67466163652d4a6f696e2d79656c6c6f77)](https://huggingface.co/Chinese-Vicuna)
+ 
  | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) |
 
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
