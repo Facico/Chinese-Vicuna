@@ -9,7 +9,7 @@ Thanks to the prior work from [Llama.cpp](https://github.com/ggerganov/llama.cpp
 Notice that:
    - Here are the steps after you have trained a Vicuna lora checkpoint in `lora_path`.
    - The merged model cost 13G disk space for 7B, 37G for 13B, 30B and 65B we haven't test yet due to the limited hardware. Notice that the convertion of model is on cpu and needs large RAM ( peak memory > 64G for 13B, you may need to increase swap size)
-   - By default, the 7B,13B,30B,65B checkpoint will be splited into 1,2,4,8 parts during the conversation ( which is fixed in cpp )
+   - By default, the 7B,13B,30B,65B checkpoint will be splitted into 1,2,4,8 parts during the conversation ( which is fixed in cpp )
 
 1. First you need to merge your lora parameter with original base model and convert them to  `ggml` format for cpp inference.
 ```
