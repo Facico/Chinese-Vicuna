@@ -1,6 +1,5 @@
 {
   "best_metric": 0.8592745065689087,
-  "best_model_checkpoint": "lora-Vicuna/checkpoint-5800",
   "epoch": 1.0057919744736934,
   "global_step": 5800,
   "is_hyper_param_search": false,
