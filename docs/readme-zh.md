@@ -38,6 +38,7 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 - March 29, 2023：增加了更详细的[performance样例](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 - April 1, 2023: 在`chat.py`对多轮对话提供了更好的支持：( 支持4种生成模式的流式输出/打字机效果: beam search, greedy, sample, beam sample ; 我们还提供了取消当前对话的功能 )
 - April 4, 2023: 增加了13B的[performance样例](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md)
+- April 10, 2023：增加了在垂直语料continue_finetune的相关案例[Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md)
 
 **相关技术**
 

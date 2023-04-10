@@ -45,6 +45,7 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 - March 29, 2023: Add more detailed test samples. [performance](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 - April 1, 2023: Add better support for multi-turn chat in `chat.py` ( Now support 4 generation mode in stream mode/typewriter style: beam search, greedy, sample, beam sample ; We also add cancel button for regeneration )
 - April 4, 2023: Add performance for [13B](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md), which trains on a single 3090.
+- April 10, 2023：Added cases related to continue_finetune in the vertical corpus [Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md)
 
 ## Table of Contents
 
