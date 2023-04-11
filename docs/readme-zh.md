@@ -38,7 +38,7 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 - March 29, 2023：增加了更详细的[performance样例](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
 - April 1, 2023: 在`chat.py`对多轮对话提供了更好的支持：( 支持4种生成模式的流式输出/打字机效果: beam search, greedy, sample, beam sample ; 我们还提供了取消当前对话的功能 )
 - April 4, 2023: 增加了13B的[performance样例](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md)
-- April 10, 2023：增加了在垂直语料continue_finetune的相关案例[Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md)
+- April 11, 2023：开放了我们在中文医学问答垂直语料上continue-finetune的[Chinese-Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md)，提供了垂直语料训练的案例
 
 **相关技术**
 
@@ -597,6 +597,10 @@ finetune_others_continue.sh
 - 1epoch：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-5800
 - 2epoch：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-11600
 - 如果使用我们的checkpoint，你的程序也将从对应的step继续
+
+### 具体案例
+
+- 医学问答垂直语料的continue-finetune，参考[Chinese-Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md)
 
 ## **使用纯C++在CPU上进行推理**
 
