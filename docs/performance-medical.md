@@ -6,6 +6,11 @@
 - 同时验证了指令微调的有效性
 - 使用单指令continue-finetune能保留原来更多的性能
 
+下面我们分析了三种不同的微调方式
+- 1、[无指令微调](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md#1%E6%97%A0%E6%8C%87%E4%BB%A4%E5%BE%AE%E8%B0%83)
+- 2、[带指令微调](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md#2%E5%B8%A6%E6%8C%87%E4%BB%A4%E5%BE%AE%E8%B0%83)
+- 3、[固定单指令](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md#2%E5%B8%A6%E6%8C%87%E4%BB%A4%E5%BE%AE%E8%B0%83)
+- 
 我们将第三种微调方式相关的模型放到了huggingface上：`Chinese-Vicuna/Chinese-Vicuna-continue-finetune-3.5epoch-cMedQA2`
 
 
