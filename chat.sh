@@ -13,7 +13,7 @@ then
     --use_typewriter 1 \
     --share_link 0 
 else
-CUDA_VISIBLE_DEVIECES=0 python chat.py --model_path $BASE_MODEL --lora_path $LORA_PATH --use_local $USE_LOCAL\
+CUDA_VISIBLE_DEVICES=0 python chat.py --model_path $BASE_MODEL --lora_path $LORA_PATH --use_local $USE_LOCAL\
     --use_typewriter 1 \
     --share_link 0 
 fi
