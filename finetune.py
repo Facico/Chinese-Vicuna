@@ -33,9 +33,9 @@ if not ft_args.wandb:
     os.environ["WANDB_MODE"] = "disable"
 # optimized for RTX 4090. for larger GPUs, increase some of these?
 MICRO_BATCH_SIZE = ft_args.per_device_train_batch_size  # this could actually be 5 but i like powers of 2
-# BATCH_SIZE = 128
 MAX_STEPS = ft_args.max_steps
 GRADIENT_ACCUMULATION_STEPS = ft_args.gradient_accumulation_steps # default 128 // MICRO_BATCH_SIZE
+BATCH_SIZE = MICRO_BATCH_SIZE * GRADIENT_ACCUMULATION_STEPS
 EPOCHS = ft_args.num_train_epochs  # we don't always need 3 tbh
 LEARNING_RATE = ft_args.learning_rate  # the Karpathy constant
 CUTOFF_LEN = model_args.max_length  # 256 accounts for about 96% of the data
