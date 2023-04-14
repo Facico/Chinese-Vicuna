@@ -1,37 +1,44 @@
 import sys
 import torch
-from peft import PeftModel, PeftModelForCausalLM, LoraConfig
 import transformers
 import json
 import gradio as gr
 import argparse
 import warnings
 import os
-from utils import SteamGenerationMixin, printf
 assert (
     "LlamaTokenizer" in transformers._import_structure["models.llama"]
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
-from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
+from transformers import (
+    LlamaTokenizer,
+    LlamaForCausalLM,
+    GenerationConfig,
+    HfArgumentParser,
+)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--model_path", type=str, default="decapoda-research/llama-7b-hf")
-parser.add_argument("--lora_path", type=str, default="./lora-Vicuna/checkpoint-3000")
-parser.add_argument("--use_typewriter", type=int, default=1)
-parser.add_argument("--share_link", type=int, default=0)
-parser.add_argument("--use_local", type=int, default=1)
-args = parser.parse_args()
+from utils import (
+    ModelArguments,
+    ChatArguments,
+    SteamGenerationMixin,
+    printf,
+)
 
-tokenizer = LlamaTokenizer.from_pretrained(args.model_path)
+hf_parser = HfArgumentParser((ModelArguments, ChatArguments))
+model_args: ModelArguments
+chat_args: ChatArguments
+model_args, chat_args = hf_parser.parse_args_into_dataclasses()
 
-LOAD_8BIT = True
-BASE_MODEL = args.model_path
-LORA_WEIGHTS = args.lora_path
+tokenizer = LlamaTokenizer.from_pretrained(model_args.token_path if model_args.token_path else model_args.model_path)
+
+LOAD_8BIT = model_args.load_8bit
+BASE_MODEL = model_args.model_path
+LORA_WEIGHTS = model_args.lora_path
 
 # fix the path for local checkpoint
-lora_bin_path = os.path.join(args.lora_path, "adapter_model.bin")
+lora_bin_path = os.path.join(LORA_WEIGHTS, "adapter_model.bin")
 print(lora_bin_path)
-if not os.path.exists(lora_bin_path) and args.use_local:
-    pytorch_bin_path = os.path.join(args.lora_path, "pytorch_model.bin")
+if not os.path.exists(lora_bin_path) and model_args.use_local:
+    pytorch_bin_path = os.path.join(LORA_WEIGHTS, "pytorch_model.bin")
     print(pytorch_bin_path)
     if os.path.exists(pytorch_bin_path):
         os.rename(pytorch_bin_path, lora_bin_path)
@@ -226,7 +233,7 @@ def evaluate(
     with torch.no_grad():
         # 流式输出 / 打字机效果
         # streamly output / typewriter style
-        if args.use_typewriter:
+        if chat_args.use_typewriter:
             for generation_output in model.stream_generate(
                 input_ids=input_ids,
                 generation_config=generation_config,
@@ -400,4 +407,4 @@ with gr.Blocks() as demo:
         )
         clear_history.click(lambda: (None, None), None, [history, chatbot], queue=False)
 
-demo.queue().launch(share=args.share_link!=0, inbrowser=True)
+demo.queue().launch(share=chat_args.share_link!=0, inbrowser=True)

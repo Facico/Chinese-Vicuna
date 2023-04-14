@@ -1,36 +1,44 @@
 import sys
 import torch
-from peft import PeftModel, PeftModelForCausalLM, LoraConfig
 import transformers
 import gradio as gr
-import argparse
 import warnings
 import os
-from utils import SteamGenerationMixin
+
 assert (
     "LlamaTokenizer" in transformers._import_structure["models.llama"]
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
-from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
+from transformers import (
+    LlamaTokenizer,
+    LlamaForCausalLM,
+    GenerationConfig,
+    HfArgumentParser,
+)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--model_path", type=str, default="/model/13B_hf")
-parser.add_argument("--lora_path", type=str, default="/home/tianjie/Documents/DialogueGeneration/trl/checkpoint/checkpoint-3000")
-parser.add_argument("--use_typewriter", type=int, default=1)
-parser.add_argument("--use_local", type=int, default=1)
-args = parser.parse_args()
-print(args)
-tokenizer = LlamaTokenizer.from_pretrained(args.model_path)
+from utils import (
+    SteamGenerationMixin,
+    ModelArguments,
+    ChatArguments,
+    task_generate_prompt as generate_prompt,
+)
 
-LOAD_8BIT = True
-BASE_MODEL = args.model_path
-LORA_WEIGHTS = args.lora_path
+hf_parser = HfArgumentParser((ModelArguments, ChatArguments))
+model_args: ModelArguments
+chat_args: ChatArguments
+model_args, chat_args = hf_parser.parse_args_into_dataclasses()
+
+tokenizer = LlamaTokenizer.from_pretrained(model_args.token_path if model_args.token_path else model_args.model_path)
+
+LOAD_8BIT = model_args.load_8bit
+BASE_MODEL = model_args.model_path
+LORA_WEIGHTS = model_args.lora_path
 
 
 # fix the path for local checkpoint
-lora_bin_path = os.path.join(args.lora_path, "adapter_model.bin")
+lora_bin_path = os.path.join(LORA_WEIGHTS, "adapter_model.bin")
 print(lora_bin_path)
-if not os.path.exists(lora_bin_path) and args.use_local:
-    pytorch_bin_path = os.path.join(args.lora_path, "pytorch_model.bin")
+if not os.path.exists(lora_bin_path) and model_args.use_local:
+    pytorch_bin_path = os.path.join(LORA_WEIGHTS, "pytorch_model.bin")
     print(pytorch_bin_path)
     if os.path.exists(pytorch_bin_path):
         os.rename(pytorch_bin_path, lora_bin_path)
@@ -84,26 +92,6 @@ else:
     )
 
 
-def generate_prompt(instruction, input=None):
-    if input:
-        return f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-
-### Instruction:
-{instruction}
-
-### Input:
-{input}
-
-### Response:"""
-    else:
-        return f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
-
-### Instruction:
-{instruction}
-
-### Response:"""
-
-
 if not LOAD_8BIT:
     model.half()  # seems to fix bugs for some users.
 
@@ -123,7 +111,7 @@ def evaluate(
     repetition_penalty=2.0,
     **kwargs,
 ):
-    prompt = generate_prompt(input)
+    prompt = generate_prompt(input, None)
     inputs = tokenizer(prompt, return_tensors="pt")
     input_ids = inputs["input_ids"].to(device)
     generation_config = GenerationConfig(
@@ -139,7 +127,7 @@ def evaluate(
         **kwargs,
     )
     with torch.no_grad():
-        if args.use_typewriter:
+        if chat_args.use_typewriter:
             for generation_output in model.stream_generate(
                 input_ids=input_ids,
                 generation_config=generation_config,

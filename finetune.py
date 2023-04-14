@@ -2,17 +2,14 @@ import os
 import sys
 
 import torch
-import torch.nn as nn
-import bitsandbytes as bnb
 from datasets import load_dataset
 import transformers
-import argparse
 import warnings
 
 assert (
     "LlamaTokenizer" in transformers._import_structure["models.llama"]
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
-from transformers import LlamaForCausalLM, LlamaTokenizer
+from transformers import LlamaForCausalLM, LlamaTokenizer, HfArgumentParser
 from peft import (
     prepare_model_for_int8_training,
     LoraConfig,
@@ -21,38 +18,37 @@ from peft import (
     set_peft_model_state_dict,
 )
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--wandb", action="store_true", default=False)
-parser.add_argument("--data_path", type=str, default="merge.json")
-parser.add_argument("--output_path", type=str, default="lora-Vicuna")
-parser.add_argument("--model_path", type=str, default="decapoda-research/llama-7b-hf")
-parser.add_argument("--eval_steps", type=int, default=200)
-parser.add_argument("--save_steps", type=int, default=200)
-parser.add_argument("--test_size", type=int, default=200)
-parser.add_argument("--resume_from_checkpoint", type=str, default=None)
-parser.add_argument("--ignore_data_skip", type=str, default="False")
-args = parser.parse_args()
+from utils import (
+    FinetuningArguments,
+    ModelArguments,
+    task_generate_prompt as generate_prompt,
+)
 
-if not args.wandb:
+hf_parser = HfArgumentParser((ModelArguments, FinetuningArguments))
+model_args: ModelArguments
+ft_args: FinetuningArguments
+model_args, ft_args = hf_parser.parse_args_into_dataclasses()
+
+if not ft_args.wandb:
     os.environ["WANDB_MODE"] = "disable"
 # optimized for RTX 4090. for larger GPUs, increase some of these?
-MICRO_BATCH_SIZE = 4  # this could actually be 5 but i like powers of 2
-BATCH_SIZE = 128
-MAX_STEPS = None
-GRADIENT_ACCUMULATION_STEPS = BATCH_SIZE // MICRO_BATCH_SIZE
-EPOCHS = 3  # we don't always need 3 tbh
-LEARNING_RATE = 3e-4  # the Karpathy constant
-CUTOFF_LEN = 256  # 256 accounts for about 96% of the data
+MICRO_BATCH_SIZE = ft_args.per_device_train_batch_size  # this could actually be 5 but i like powers of 2
+# BATCH_SIZE = 128
+MAX_STEPS = ft_args.max_steps
+GRADIENT_ACCUMULATION_STEPS = ft_args.gradient_accumulation_steps # default 128 // MICRO_BATCH_SIZE
+EPOCHS = ft_args.num_train_epochs  # we don't always need 3 tbh
+LEARNING_RATE = ft_args.learning_rate  # the Karpathy constant
+CUTOFF_LEN = model_args.max_length  # 256 accounts for about 96% of the data
 LORA_R = 8
 LORA_ALPHA = 16
 LORA_DROPOUT = 0.05
-VAL_SET_SIZE = args.test_size #2000
+VAL_SET_SIZE = ft_args.test_size #2000
 TARGET_MODULES = [
     "q_proj",
     "v_proj",
 ]
-DATA_PATH = args.data_path #"/home/cciip/private/fanchenghao/dataset/instruction/merge.json"
-OUTPUT_DIR = args.output_path #"lora-Vicuna"
+DATA_PATH = ft_args.data_path #"/home/cciip/private/fanchenghao/dataset/instruction/merge.json"
+OUTPUT_DIR = ft_args.output_dir #"lora-Vicuna"
 
 device_map = "auto"
 world_size = int(os.environ.get("WORLD_SIZE", 1))
@@ -60,14 +56,14 @@ ddp = world_size != 1
 if ddp:
     device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
     GRADIENT_ACCUMULATION_STEPS = GRADIENT_ACCUMULATION_STEPS // world_size
-print(args.model_path)
+print(model_args.model_path)
 model = LlamaForCausalLM.from_pretrained(
-    args.model_path,
+    model_args.model_path,
     load_in_8bit=True,
     device_map=device_map,
 )
 tokenizer = LlamaTokenizer.from_pretrained(
-    args.model_path, add_eos_token=True
+    model_args.model_path, add_eos_token=True
 )
 
 model = prepare_model_for_int8_training(model)
@@ -87,21 +83,21 @@ tokenizer.pad_token_id = 0  # unk. we want this to be different from the eos tok
 data = load_dataset("json", data_files=DATA_PATH)
 
 now_max_steps = max((len(data["train"]) - VAL_SET_SIZE) // BATCH_SIZE * EPOCHS, EPOCHS)
-if args.resume_from_checkpoint:
+if ft_args.resume_from_checkpoint:
 # Check the available weights and load them
     checkpoint_name = os.path.join(
-        args.resume_from_checkpoint, "pytorch_model.bin"
+        ft_args.resume_from_checkpoint, "pytorch_model.bin"
 )  # Full checkpoint
     if not os.path.exists(checkpoint_name):
         pytorch_bin_path = checkpoint_name
         checkpoint_name = os.path.join(
-            args.resume_from_checkpoint, "adapter_model.bin"
+            ft_args.resume_from_checkpoint, "adapter_model.bin"
         )  # only LoRA model - LoRA config above has to fit
         if os.path.exists(checkpoint_name):
             os.rename(checkpoint_name, pytorch_bin_path)
             warnings.warn("The file name of the lora checkpoint'adapter_model.bin' is replaced with 'pytorch_model.bin'")
         else:
-            args.resume_from_checkpoint = (
+            ft_args.resume_from_checkpoint = (
                 None  # So the trainer won't try loading its state
             )
     # The two files above have a different name depending on how they were saved, but are actually the same.
@@ -112,7 +108,7 @@ if args.resume_from_checkpoint:
     else:
         print(f"Checkpoint {checkpoint_name} not found")
     
-    train_args_path = os.path.join(args.resume_from_checkpoint, "trainer_state.json")
+    train_args_path = os.path.join(ft_args.resume_from_checkpoint, "trainer_state.json")
     
     if os.path.exists(train_args_path):
         import json
@@ -130,29 +126,6 @@ else:
 
 
 model.print_trainable_parameters()
-
-def generate_prompt(data_point):
-    # sorry about the formatting disaster gotta move fast
-    if data_point["input"]:
-        return f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-
-### Instruction:
-{data_point["instruction"]}
-
-### Input:
-{data_point["input"]}
-
-### Response:
-{data_point["output"]}"""
-    else:
-        return f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
-
-### Instruction:
-{data_point["instruction"]}
-
-### Response:
-{data_point["output"]}"""
-
 
 def tokenize(prompt):
     # there's probably a way to do this with the tokenizer settings
@@ -172,30 +145,7 @@ def tokenize(prompt):
 def generate_and_tokenize_prompt(data_point):
     # This function masks out the labels for the input,
     # so that our loss is computed only on the response.
-    user_prompt = (
-        (
-            f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-
-### Instruction:
-{data_point["instruction"]}
-
-### Input:
-{data_point["input"]}
-
-### Response:
-"""
-        )
-        if data_point["input"]
-        else (
-            f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
-
-### Instruction:
-{data_point["instruction"]}
-
-### Response:
-"""
-        )
-    )
+    user_prompt = generate_prompt(data_point)
     len_user_prompt_tokens = (
         len(
             tokenizer(
@@ -245,14 +195,14 @@ trainer = transformers.Trainer(
         logging_steps=20,
         evaluation_strategy="steps" if VAL_SET_SIZE > 0 else "no",
         save_strategy="steps",
-        eval_steps=args.eval_steps if VAL_SET_SIZE > 0 else None,
-        save_steps=args.save_steps,
+        eval_steps=ft_args.eval_steps if VAL_SET_SIZE > 0 else None,
+        save_steps=ft_args.save_steps,
         output_dir=OUTPUT_DIR,
         save_total_limit=30,
         load_best_model_at_end=True if VAL_SET_SIZE > 0 else False,
         ddp_find_unused_parameters=False if ddp else None,
-        report_to="wandb" if args.wandb else [],
-        ignore_data_skip=args.ignore_data_skip,
+        report_to=ft_args.report_to,
+        ignore_data_skip=ft_args.ignore_data_skip,
     ),
     data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False)
 )
@@ -268,7 +218,7 @@ if torch.__version__ >= "2" and sys.platform != "win32":
 
 print("\n If there's a warning about missing keys above, please disregard :)")
 
-trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
+trainer.train(resume_from_checkpoint=ft_args.resume_from_checkpoint)
 
 model.save_pretrained(OUTPUT_DIR)
 

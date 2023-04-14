@@ -1,22 +1,5 @@
-import logging
-import sys
-import os
 import torch
-from typing import Optional, Tuple, Union, List, Callable
-from transformers.generation.logits_process import LogitsProcessor
-from transformers.generation.beam_search import BeamSearchScorer
-from transformers.deepspeed import is_deepspeed_zero3_enabled
-from transformers.generation.utils import (
-    LogitsProcessorList,
-    StoppingCriteriaList,
-    GenerationConfig,
-    GenerationMixin,
-)
-import warnings
-from peft import PeftModel, PeftModelForCausalLM, LoraConfig
-import torch.distributed as dist
-from torch import nn
-import copy
+from peft import PeftModelForCausalLM, LoraConfig
 from accelerate.hooks import (
     AlignDevicesHook,
     add_hook_to_module,
@@ -26,10 +9,21 @@ from accelerate.utils import get_balanced_memory
 from huggingface_hub import hf_hub_download
 from accelerate import dispatch_model, infer_auto_device_map
 from peft.utils import PeftType, set_peft_model_state_dict
-
-def printf(*args):
-    if os.environ.get('DEBUG',False):
-        print('>>> ', *args)
+import copy
+import warnings
+import os
+import torch.distributed as dist
+from typing import Optional, List, Callable
+from transformers.generation.beam_search import BeamSearchScorer
+from transformers.deepspeed import is_deepspeed_zero3_enabled
+from transformers.generation.utils import (
+    LogitsProcessorList,
+    StoppingCriteriaList,
+    GenerationConfig,
+    GenerationMixin,
+)
+from torch import nn
+from transformers import GenerationConfig
 
 class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
     # support for streamly generation
@@ -718,4 +712,3 @@ class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
                 remove_hook_from_submodules(model.prompt_encoder)
                 add_hook_to_module(model.base_model, hook)
         return model
-
