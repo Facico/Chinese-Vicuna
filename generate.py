@@ -184,7 +184,7 @@ gr.Interface(
             minimum=1, maximum=2000, step=1, value=256, label="Max New Tokens"
         ),
         gr.components.Slider(
-            minimum=1, maximum=100, step=1, value=1, label="Min New Tokens"
+            minimum=1, maximum=300, step=1, value=1, label="Min New Tokens"
         ),
         gr.components.Slider(
             minimum=0.1, maximum=10.0, step=0.1, value=2.0, label="Repetition Penalty"
