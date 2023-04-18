@@ -17,7 +17,7 @@ bash prepare_llama_cpp.sh
 ```
  ( Currently in our code, it will first convert hf model & lora to a merged `consolidated.0x.pth`, where `x` corresponding to num_shards, and convert them to `ggml-model-f16.bin` )
 ```bash 
-python tools/merge_lora_for_cpp.py --lora_path $lora_path
+python tools/merge_lora.py --lora_path $lora_path
 ```
 
 1. next, go to the `vicuna.cpp` directory and start to chat pure in CPU & C++ !
