@@ -49,7 +49,7 @@ python convert_llama.py --ckpt_dir LLaMA_7B --tokenizer_path LLaMA_7B/tokenizer.
 python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 8 --save pyllama-7B8b.pt --eval
 ```
 
-- Quantize 7B model to 4-bit with groupsize 128 (the recommended setup 🔥)
+- Quantize 7B model to 4-bit with groupsize 128
 ```bash
 python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 4 --groupsize 128 --save pyllama-7B4b.pt --eval
 ```
