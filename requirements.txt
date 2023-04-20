@@ -3,7 +3,7 @@ loralib
 sentencepiece
 git+https://github.com/huggingface/transformers.git
 accelerate
-bitsandbytes
+bitsandbytes==0.37.2
 git+https://github.com/huggingface/peft@e536616888d51b453ed354a6f1e243fecb02ea08
 gradio
 appdirs
