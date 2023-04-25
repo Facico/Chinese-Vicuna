@@ -84,7 +84,6 @@ else:
         device_map={"": device},
     )
 
-
 def generate_prompt_and_tokenize0(data_point, maxlen):
     # cutoff the history to avoid exceeding length limit
     init_prompt = PROMPT_DICT['prompt']
@@ -111,8 +110,7 @@ def postprocess0(text, render=True):
 
 def generate_prompt_and_tokenize1(data_point, maxlen):
     input_prompt = "\n".join(["User:" + i['input']+"\n"+"Assistant:" + i['output'] for i in data_point['history']]) + "\nUser:" + data_point['input'] + "\nAssistant:"
-    if len(input_prompt) > maxlen:
-        input_prompt = input_prompt[-maxlen:]
+    input_prompt = input_prompt[-maxlen:]
     input_prompt = PROMPT_DICT['prompt'].format_map({'input':input_prompt})
     input_ids = tokenizer(input_prompt)["input_ids"]
     return input_ids
@@ -173,8 +171,6 @@ model.eval()
 if torch.__version__ >= "2" and sys.platform != "win32":
     model = torch.compile(model)
 
-
-
 def evaluate(
     inputs,
     history,
@@ -207,6 +203,7 @@ def evaluate(
     input_ids = PROMPT_DICT['preprocess'](data_point, max_memory)
     printf('>>> input prompts:', tokenizer.decode(input_ids))
     input_ids = torch.tensor([input_ids]).to(device) # batch=1
+    printf(input_ids.shape)
     generation_config = GenerationConfig(
         temperature=temperature,
         top_p=top_p,
@@ -222,53 +219,76 @@ def evaluate(
     )
     
     return_text = [(item['input'], item['output']) for item in history]
-    
+    out_memory =False
+    outputs = None
     with torch.no_grad():
         # 流式输出 / 打字机效果
         # streamly output / typewriter style
         if args.use_typewriter:
-            for generation_output in model.stream_generate(
-                input_ids=input_ids,
-                generation_config=generation_config,
-                return_dict_in_generate=True,
-                output_scores=False,
-                repetition_penalty=float(repetition_penalty),
-            ):
-                outputs = tokenizer.batch_decode(generation_output)
-                show_text = "\n--------------------------------------------\n".join(
-                    [PROMPT_DICT['postprocess'](output)+" ▌" for output in outputs]
-                )
-                printf(show_text)
-                yield return_text +[(inputs, show_text)], history
+            try:
+                for generation_output in model.stream_generate(
+                    input_ids=input_ids,
+                    generation_config=generation_config,
+                    return_dict_in_generate=True,
+                    output_scores=False,
+                    repetition_penalty=float(repetition_penalty),
+                ):
+                    outputs = tokenizer.batch_decode(generation_output)
+                    show_text = "\n--------------------------------------------\n".join(
+                        [PROMPT_DICT['postprocess'](output)+" ▌" for output in outputs]
+                    )
+                    printf(show_text)
+                    yield return_text +[(inputs, show_text)], history
+            except torch.cuda.OutOfMemoryError:
+                import gc
+                gc.collect()
+                torch.cuda.empty_cache()
+                out_memory=True
             # finally only one
-            show_text = PROMPT_DICT['postprocess'](outputs[0])
+            show_text = PROMPT_DICT['postprocess'](outputs[0] if outputs is not None else '### Response:')
+            return_len = len(show_text)
+            if out_memory==True:
+                out_memory=False
+                show_text+= '<p style="color:#FF0000"> [GPU Out Of Memory] </p> '
+            if return_len > 0:
+                output = PROMPT_DICT['postprocess'](outputs[0], render=False)
+                history.append({
+                    'input': inputs,
+                    'output': output,
+                })
             printf(show_text)
-            output = PROMPT_DICT['postprocess'](outputs[0], render=False)
-            history.append({
-                'input': inputs,
-                'output': output,
-            })
             return_text += [(inputs, show_text)]
             yield return_text, history
         # common 
         else:
-            generation_output = model.generate(
-                input_ids=input_ids,
-                generation_config=generation_config,
-                return_dict_in_generate=True,
-                output_scores=True,
-                max_new_tokens=max_new_tokens,
-                repetition_penalty=float(repetition_penalty),
-            )
-            s = generation_output.sequences[0]
-            output = tokenizer.decode(s)
-            output = PROMPT_DICT['postprocess'](output)
-            history.append({
-                'input': inputs,
-                'output': output,
-            })
-            return_text += [(inputs, output)]
-            yield return_text, history
+            try:
+                generation_output = model.generate(
+                    input_ids=input_ids,
+                    generation_config=generation_config,
+                    return_dict_in_generate=True,
+                    output_scores=True,
+                    max_new_tokens=max_new_tokens,
+                    repetition_penalty=float(repetition_penalty),
+                )
+                s = generation_output.sequences[0]
+                output = tokenizer.decode(s)
+                output = PROMPT_DICT['postprocess'](output)
+                history.append({
+                    'input': inputs,
+                    'output': output,
+                })
+                return_text += [(inputs, output)]
+                yield return_text, history
+            except torch.cuda.OutOfMemoryError:
+                import gc
+                gc.collect()
+                torch.cuda.empty_cache()
+                show_text = '<p style="color:#FF0000"> [GPU Out Of Memory] </p> '
+                printf(show_text)
+                return_text += [(inputs, show_text)]
+                yield return_text, history
+
+
 
 # gr.Interface对chatbot的clear有bug，因此我们重新实现了一个基于gr.block的UI逻辑
 # gr.Interface has bugs to clear chatbot's history,so we customly implement it based on gr.block

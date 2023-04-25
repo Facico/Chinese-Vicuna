@@ -17,7 +17,7 @@ bash prepare_llama_cpp.sh
 ```
  ( Currently in our code, it will first convert hf model & lora to a merged `consolidated.0x.pth`, where `x` corresponding to num_shards, and convert them to `ggml-model-f16.bin` )
 ```bash 
-python tools/merge_lora_for_cpp.py --lora_path $lora_path
+python tools/merge_lora.py --lora_path $lora_path
 ```
 
 1. next, go to the `vicuna.cpp` directory and start to chat pure in CPU & C++ !
@@ -49,7 +49,7 @@ python convert_llama.py --ckpt_dir LLaMA_7B --tokenizer_path LLaMA_7B/tokenizer.
 python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 8 --save pyllama-7B8b.pt --eval
 ```
 
-- Quantize 7B model to 4-bit with groupsize 128 (the recommended setup 🔥)
+- Quantize 7B model to 4-bit with groupsize 128
 ```bash
 python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 4 --groupsize 128 --save pyllama-7B4b.pt --eval
 ```
