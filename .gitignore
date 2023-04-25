@@ -3,6 +3,7 @@ __pycache__/
 wandb
 runs
 flagged
+save
 #optimizer.pt
 #rng_state*
 #scaler.pt
