@@ -46,26 +46,26 @@ python convert_llama.py --input_dir /model/llama-7b --model_size 7B --output_dir
 ### 2. then, quantitative Model:
 - Quantize 7B model to 8-bit
 ```bash
-CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 8 --true-sequential --act-order --groupsize 128 --save llama7b-8bit-128g.pt
+CUDA_VISIBLE_DEVICES=0 python quant_llama.py ./llama-hf/llama-7b wikitext2 --wbits 8 --true-sequential --act-order --groupsize 128 --save llama7b-8bit-128g.pt
 ```
 
 - Quantize 7B model to 4-bit with groupsize 128 (recommend)
 ```bash
-CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 4 --true-sequential --act-order --groupsize 128 --save llama7b-4bit-128g.pt
+CUDA_VISIBLE_DEVICES=0 python quant_llama.py ./llama-hf/llama-7b wikitext2 --wbits 4 --true-sequential --act-order --groupsize 128 --save llama7b-4bit-128g.pt
 ```
 
 - Quantize 7B model to 2-bit
 ```bash
-CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 2 --true-sequential --act-order --groupsize 128 --save llama7b-2bit-128g.pt
+CUDA_VISIBLE_DEVICES=0 python quant_llama.py ./llama-hf/llama-7b wikitext2 --wbits 2 --true-sequential --act-order --groupsize 128 --save llama7b-2bit-128g.pt
 ```
 ### 3. Generate results directly or use gradio on the web:
 - Reasoning from the input text
 ```bash
-python tools/quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --text "the mean of life is"
+python quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --text "the mean of life is"
 ```
 - use gradio to generate a web page:
 ```bash
-python tools/quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --gradio
+python quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --gradio
 ```
 
 #### LLaMA-7B Generate results and graphics memory usage：
@@ -79,9 +79,9 @@ the median age at death in a population, regardless if it's male or female?
 the mean of life is 70 years.
 the median age at death in africa was about what?
 ```
-- 2bit [testing]
+- 2bit [4G MEM]
 ```text
-testing
+the mean of life is a good., and it’s not to be worth in your own homework for an individual who traveling on my back with me our localities that you can do some work at this point as well known by us online gaming sites are more than 10 years old when i was going out there around here we had been written about his time were over all sited down after being spent from most days while reading between two weeks since I would have gone before its age site;...
 ```
 ---
 

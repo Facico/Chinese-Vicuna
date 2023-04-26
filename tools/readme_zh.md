@@ -43,26 +43,26 @@ python convert_llama.py --input_dir /model/llama-7b --model_size 7B --output_dir
 ### 2. 然后进行模型量化，下面分别是量化为8bit、4bit、2bit的方法:
 - 将LLaMA-7B的模型量化为8-bit
 ```bash
-CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 8 --true-sequential --act-order --groupsize 128 --save llama7b-8bit-128g.pt
+CUDA_VISIBLE_DEVICES=0 python quant_llama.py ./llama-hf/llama-7b wikitext2 --wbits 8 --true-sequential --act-order --groupsize 128 --save llama7b-8bit-128g.pt
 ```
 
 - 将LLaMA-7B的模型量化为4-bit（推荐）
 ```bash
-CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 4 --true-sequential --act-order --groupsize 128 --save llama7b-4bit-128g.pt
+CUDA_VISIBLE_DEVICES=0 python quant_llama.py ./llama-hf/llama-7b wikitext2 --wbits 4 --true-sequential --act-order --groupsize 128 --save llama7b-4bit-128g.pt
 ```
 
 - 将LLaMA-7B的模型量化为2-bit
 ```bash
-CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 2 --true-sequential --act-order --groupsize 128 --save llama7b-2bit-128g.pt
+CUDA_VISIBLE_DEVICES=0 python quant_llama.py ./llama-hf/llama-7b wikitext2 --wbits 2 --true-sequential --act-order --groupsize 128 --save llama7b-2bit-128g.pt
 ```
 ### 3. 直接生成结果 or 者使用gradio在网页上操作：
 - 根据输入的text推理
 ```bash
-python tools/quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --text "the mean of life is"
+python quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --text "the mean of life is"
 ```
 - 使用gradio推理，你可以直接在网页上操作
 ```bash
-python tools/quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --gradio
+python quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --gradio
 ```
 
 #### LLaMA-7B 生成结果和显存占用：
@@ -76,9 +76,9 @@ the median age at death in a population, regardless if it's male or female?
 the mean of life is 70 years.
 the median age at death in africa was about what?
 ```
-- 2bit[testing]
+- 2bit[4G显存]
 ```text
-testing
+the mean of life is a good., and it’s not to be worth in your own homework for an individual who traveling on my back with me our localities that you can do some work at this point as well known by us online gaming sites are more than 10 years old when i was going out there around here we had been written about his time were over all sited down after being spent from most days while reading between two weeks since I would have gone before its age site;...
 ```
 ---
 
