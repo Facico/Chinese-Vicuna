@@ -34,38 +34,52 @@ make quantize
 
 ---
 ## Quantize LLaMA
-提供了一种定量的方法，允许你在图形内存小于4G的设备上使用LLaMA-7B模型进行推理，参考之前的研究[pyllama]（https://github.com/juncongmoo/pyllama）。
-运行下面的代码前，你需要用 pip install gptq>=0.0.2 命令来安装 gptq。
+提供了一种定量的方法，可以在显存小于4G的设备上使用LLaMA-7B(2bit)模型进行推理。该量化工具参考之前的研究[GPTQ-for-LLaMa](https://github.com/qwopqwop200/GPTQ-for-LLaMa)。
+本地测试使用的transformers版本为4.29.0.dev0。
 ### 1. 首先需要确保模型为huggingface格式。如果不是，可以通过下面的命令转换:
 ```bash 
-python --ckpt_dir LLaMA_7B --tokenizer_path LLaMA_7B/tokenizer.model --output_dir LLaMA_7B_hf --to hf
+python convert_llama.py --input_dir /model/llama-7b --model_size 7B --output_dir ./llama-hf
 ```
 ### 2. 然后进行模型量化，下面分别是量化为8bit、4bit、2bit的方法:
 - 将LLaMA-7B的模型量化为8-bit
 ```bash
-python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 8 --save pyllama-7B8b.pt
+CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 8 --true-sequential --act-order --groupsize 128 --save llama7b-8bit-128g.pt
 ```
 
 - 将LLaMA-7B的模型量化为4-bit（推荐）
 ```bash
-python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 4 --groupsize 128 --save pyllama-7B4b.pt
+CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 4 --true-sequential --act-order --groupsize 128 --save llama7b-4bit-128g.pt
 ```
 
 - 将LLaMA-7B的模型量化为2-bit
 ```bash
-python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 2 --save pyllama-7B2b.pt
+CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 2 --true-sequential --act-order --groupsize 128 --save llama7b-2bit-128g.pt
 ```
-### 3. 使用gradio推理，你可以直接在网页上操作：
+### 3. 直接生成结果 or 者使用gradio在网页上操作：
+- 根据输入的text推理
 ```bash
-CUDA_VISIBLE_DEVICES=0
-python generate_quant.py \
-    --model_path "decapoda-research/llama-7b-hf" \
-    --quant_path "pyllama-7B2b.pt" \
-    --wbits 2
+python tools/quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --text "the mean of life is"
+```
+- 使用gradio推理，你可以直接在网页上操作
+```bash
+python tools/quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --gradio
 ```
 
-LLaMA_7B量化为2bit后，在beam_search设置为1下推理只需要3.8GB GPU内存。
-
+#### LLaMA-7B 生成结果和显存占用：
+- 8bit[8.5G显存]
+```text
+the mean of life is 70 years.
+the median age at death in a population, regardless if it's male or female?
+```
+- 4bit[5.4G显存]
+```text
+the mean of life is 70 years.
+the median age at death in africa was about what?
+```
+- 2bit[testing]
+```text
+testing
+```
 ---
 
 

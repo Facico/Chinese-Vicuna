@@ -37,38 +37,52 @@ make quantize
 ---
 ## Quantize LLaMA
 Provides a quantitative approach that allows you to use the LLaMA-7B model for inference on devices with less than 4G graphics memory.
-Referring to the previous study [pyllama](https://github.com/juncongmoo/pyllama).
-you need to install gptq with pip install gptq>=0.0.2 command.
+Referring to the previous study [GPTQ-for-LLaMa](https://github.com/qwopqwop200/GPTQ-for-LLaMa).
+The version of transformers used for local testing is 4.29.0.dev0.
 ### 1. first, you need to convert the model to huggingface model:
 ```bash 
-python convert_llama.py --ckpt_dir LLaMA_7B --tokenizer_path LLaMA_7B/tokenizer.model --model_size 7B --output_dir LLaMA_7B_hf --to hf
+python convert_llama.py --input_dir /model/llama-7b --model_size 7B --output_dir ./llama-hf
 ```
 ### 2. then, quantitative Model:
 - Quantize 7B model to 8-bit
 ```bash
-python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 8 --save pyllama-7B8b.pt --eval
+CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 8 --true-sequential --act-order --groupsize 128 --save llama7b-8bit-128g.pt
 ```
 
-- Quantize 7B model to 4-bit with groupsize 128
+- Quantize 7B model to 4-bit with groupsize 128 (recommend)
 ```bash
-python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 4 --groupsize 128 --save pyllama-7B4b.pt --eval
+CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 4 --true-sequential --act-order --groupsize 128 --save llama7b-4bit-128g.pt
 ```
 
 - Quantize 7B model to 2-bit
 ```bash
-python llama_quant.py decapoda-research/llama-7b-hf c4 --wbits 2 --save pyllama-7B2b.pt --eval
+CUDA_VISIBLE_DEVICES=0 python llama.py ./llama-hf/llama-7b wikitext2 --wbits 2 --true-sequential --act-order --groupsize 128 --save llama7b-2bit-128g.pt
 ```
-### 3. finally, inference and use gradio to generate a web page:
+### 3. Generate results directly or use gradio on the web:
+- Reasoning from the input text
 ```bash
-CUDA_VISIBLE_DEVICES=0
-python generate_quant.py \
-    --model_path "decapoda-research/llama-7b-hf" \
-    --quant_path "pyllama-7B2b.pt" \
-    --wbits 2
+python tools/quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --text "the mean of life is"
+```
+- use gradio to generate a web page:
+```bash
+python tools/quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4bit-128g.pt --wbits 4 --groupsize 128 --gradio
 ```
 
-The inference with 7B 2bit model requires only 3.8GB GPU memory when beam search is set to  1.
-
+#### LLaMA-7B Generate results and graphics memory usage：
+- 8bit [8.5G MEM]
+```text
+the mean of life is 70 years.
+the median age at death in a population, regardless if it's male or female?
+```
+- 4bit [5.4G MEM]
+```text
+the mean of life is 70 years.
+the median age at death in africa was about what?
+```
+- 2bit [testing]
+```text
+testing
+```
 ---
 
 
