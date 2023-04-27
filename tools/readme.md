@@ -69,17 +69,17 @@ python quant_generate.py --model_path ./llama-hf/llama-7b --quant_path llama7b-4
 ```
 
 #### LLaMA-7B Generate results and graphics memory usage：
-- 8bit [8.5G MEM]
+- 8bit [8.5G MEM] [Download](https://huggingface.co/Chinese-Vicuna/llama7b_8bit_128g).
 ```text
 the mean of life is 70 years.
 the median age at death in a population, regardless if it's male or female?
 ```
-- 4bit [5.4G MEM]
+- 4bit [5.4G MEM] [Download](https://huggingface.co/Chinese-Vicuna/llama7b_4bit_128g).
 ```text
 the mean of life is 70 years.
 the median age at death in africa was about what?
 ```
-- 2bit [4G MEM]
+- 2bit [4G MEM] [Download](https://huggingface.co/Chinese-Vicuna/llama7b_2bit_128g).
 ```text
 the mean of life is a good., and it’s not to be worth in your own homework for an individual who traveling on my back with me our localities that you can do some work at this point as well known by us online gaming sites are more than 10 years old when i was going out there around here we had been written about his time were over all sited down after being spent from most days while reading between two weeks since I would have gone before its age site;...
 ```
