@@ -31,6 +31,66 @@ def printf(*args):
     if os.environ.get('DEBUG',False):
         print('>>> ', *args)
 
+class ColorFormatter(logging.Formatter):
+
+    grey = "\x1b[38;20m"
+    blue = "\x1b[34;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+
+    def __init__(self, fmt):
+        super().__init__(fmt)
+        self.FORMATS = {
+            logging.DEBUG: self.grey + fmt + self.reset,
+            logging.INFO: self.blue + fmt + self.reset,
+            logging.WARNING: self.yellow + fmt + self.reset,
+            logging.ERROR: self.red + fmt + self.reset,
+            logging.CRITICAL: self.bold_red + fmt + self.reset
+        }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
+def set_console_logger(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    consoleHandler = logging.StreamHandler(sys.stdout)
+    consoleHandler.setLevel(logging.INFO)
+    consoleHandler.setFormatter(ColorFormatter("%(asctime)s | %(levelname)s %(message)s"))
+    logger.addHandler(consoleHandler)
+    return logger
+
+def set_file_logger(name, dir, use_console=False):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    os.makedirs(dir, exist_ok=True)
+
+    if use_console:
+        logger.propagate = False # disable default handler
+        consoleHandler = logging.StreamHandler(sys.stdout)
+        consoleHandler.setLevel(logging.INFO)
+        consoleHandler.setFormatter(ColorFormatter("%(asctime)s | %(levelname)s %(message)s"))
+        logger.addHandler(consoleHandler)
+
+    fileHandler = logging.FileHandler(os.path.join(dir,'session.log'), mode='a') 
+    fileHandler.setLevel(logging.INFO)
+    fileHandler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s %(message)s"))
+    logger.addHandler(fileHandler)
+    return logger
+
+def to_jsonl(data, path):
+    with open(path, 'w') as f:
+        for line in data:
+            f.write(json.dumps(line,ensure_ascii=False)+'\n')
+
+def from_jsonl(path):
+    return [json.loads(line) for line in open(path, 'r') ]
+        
+        
 class SteamGenerationMixin(PeftModelForCausalLM, GenerationMixin):
     # support for streamly generation
     # TODO: group_beam_search

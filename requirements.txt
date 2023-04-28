@@ -1,9 +1,11 @@
-datasets
+datasets==2.10.1
 loralib
 sentencepiece
-git+https://github.com/huggingface/transformers.git
-accelerate
+transformers==4.28.1
+accelerate==0.17.1
 bitsandbytes==0.37.2
 git+https://github.com/huggingface/peft@e536616888d51b453ed354a6f1e243fecb02ea08
 gradio
 appdirs
+triton==2.0.0
+texttable
