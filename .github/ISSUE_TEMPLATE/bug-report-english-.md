@@ -6,6 +6,7 @@ labels: ''
 assignees: ''
 
 ---
+Before you ask a question, make sure you read this [NOTE!!](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
 
 If you encounter a problem and need our help, you can describe your information from the following perspectives so that we can understand or reproduce your error (learning how to ask questions is not only a way to help us understand you, but also a process of self-examination):
 1, which script you used, what command you used
