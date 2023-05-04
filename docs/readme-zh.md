@@ -4,7 +4,7 @@
 [![discord join](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/4FnhmeNHku)
 
  
- | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) |
+ | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) |[注意事项/NOTEs](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
 
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
 
@@ -51,6 +51,11 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 
 我们目前选择BELLE和Guanaco数据的组合作为我们的主要训练数据集。
 我们还将增加多轮instruction数据增强上下文能力。
+
+## 可能会遇到的问题
+
+在安装并使用本项目时，可能会遇到一些问题，目前遇到的各种问题总结如下：
+在提问题之前，请务必先看看这个[注意事项](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
 
 ## 目录
 
@@ -618,11 +623,6 @@ finetune_others_continue.sh
 
 详见[tool readme](https://github.com/Facico/Chinese-Vicuna/tree/master/tools)
 
-## 可能会遇到的问题
-
-在安装并使用本项目时，可能会遇到一些问题，目前遇到的各种问题总结如下：
-
-[Problems](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/problems.md)
 
 # todo
 

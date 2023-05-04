@@ -47,6 +47,10 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 - April 4, 2023: Add performance for [13B](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md), which trains on a single 3090.
 - April 11, 2023：Released our continuous-finetune on the vertical corpus of Chinese medical quizzes [Chinese-Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md).Provides examples of vertical corpus training
 
+## Possible problems encountered
+
+When installing and using this project, some problems may be encountered, and the various problems encountered so far are summarized as follows:
+Before asking questions, take a look at this [Notes](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
 ## Table of Contents
 
 [Vicuna](https://github.com/Facico/Chinese-Vicuna)
@@ -631,11 +635,7 @@ We also offer:
 
 For more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tree/master/tools)
 
-## Possible problems encountered
 
-When installing and using this project, some problems may be encountered, and the various problems encountered so far are summarized as follows:
-
-[Problems](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/problems.md)
 
 # todo
 
