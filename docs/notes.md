@@ -86,7 +86,7 @@
     - https://github.com/Facico/Chinese-Vicuna/issues/122
 ### 2、llama模型文件个transformers版本的问题
 
-llama的模型文件有两个下载渠道，他们官方(META AI)的（`https://agi.gpt4.org/llama/LLaMA/`）和huggingface上的（decapoda_research的）。然而这几个模型上传之后都改过他们的tokenizer（由于看不到官方的模型修改记录所以不知道改成什么样了），对应的tokenizer会和对应的transformers版本进行对齐，transformers中关于llama代码的tokenizers处的逻辑也大改过。
+llama的模型文件有两个下载渠道，他们官方(META AI)的（[agi.gpt4.org](https://agi.gpt4.org/llama/LLaMA/)）和huggingface上的（decapoda_research的）。然而这几个模型上传之后都改过他们的tokenizer（由于看不到官方的模型修改记录所以不知道改成什么样了），对应的tokenizer会和对应的transformers版本进行对齐，transformers中关于llama代码的tokenizers处的逻辑也大改过。
 
 - 这个issue有提供对应最新transformers的llama模型文件：https://github.com/tloen/alpaca-lora/issues/279
 
