@@ -650,6 +650,9 @@ For more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tre
 - [ ] add langchain
 - [ ] train on multi-turn instruction dataset
 
+# Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=Facico/Chinese-Vicuna&type=Date)](https://star-history.com/#Facico/Chinese-Vicuna&Date)
+
 # Citation
 
 If you find this project useful in your research, please consider citing:
