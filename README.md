@@ -4,7 +4,7 @@
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/Facico/Chinese-Vicuna?style=social) [![HuggingFace badge](https://camo.githubusercontent.com/4a295d6d34ed2c79cfe624ce6358a4be53d4187c883aaa9345fdc322937ce542/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f25463025394625413425393748756767696e67466163652d4a6f696e2d79656c6c6f77)](https://huggingface.co/Chinese-Vicuna) [![qq join](https://img.shields.io/badge/qq%E7%BE%A4%3A532581765-join-red)](https://jq.qq.com/?_wv=1027&k=47Z6bRjw) [![discord join](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/4FnhmeNHku)
  
- | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) | [注意事项/NOTEs](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
+ | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) | [FAQ](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
 
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
 
@@ -31,6 +31,8 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 
 ## What‘s New
 
+- **May 10, 2023：Released [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) which have better conversational ability.**
+- **May 10, 2023：Released [instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl) which is composed of 3k Chinese sharegpt dataset and 2k [alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)**
 - March 23, 2023：Released checkpoint-4000 with 50w data training
 - March 23, 2023：Deploy the code for fine-tuning and inferencing in colab
 - March 23, 2023：Provides code that can be used for inference in pure c++
@@ -516,7 +518,7 @@ NOTE: python3.11 has a known `torchrun` bug, details [here](https://github.com/f
 **Multi-gpu Training**
 
 ```bash
-bash finetune.sh
+bash scripts/finetune.sh
 ```
 
 - The parameters to note here are as follows
@@ -538,7 +540,7 @@ python finetune.py --data_path merge.json --test_size 2000
 **inference and use gradio to generate a web page**
 
 ```bash
-bash generate.sh
+bash scripts/generate.sh
 ```
 
 - The parameters to note here are as follows
@@ -555,10 +557,10 @@ bash generate.sh
 
 **Multi-round interaction**
 
-As we use the basic command prompt when training, so the ability of small talk conversation is still relatively poor, the follow-up will increase this part of the training.
+We implemented our own chatbot with streaming output (typewriter-style) using `gradio`, supporting beam search, repetiion penalty settings, the ability to clear history, select different global instruction, etc.
 
 ```bash
-bash interaction.sh
+bash scripts/chat_7B.sh
 ```
 
 - A simple interactive interface constructed using gradio, which allows you to set the max_memory according to your machine (it will intercept the max_memory part later in the history conversation)
@@ -569,13 +571,7 @@ bash interaction.sh
     The following is a conversation between an AI assistant called Bot and a human user called User.
     ```
 
-
-
-At the same time, for a better interactive experience, we implemented our own chatbot with streaming output (typewriter-style) interaction, supporting beam search, repetiion penalty settings, the ability to clear history, select different global instruction, etc.
-
-```bash
-bash chat.sh
-```
+At the same time, for a better interactive experience, 
 
 ## Checkpoint Retraining/Incremental Training
 
@@ -586,7 +582,7 @@ Considering the possibility that the program may be disconnected in the middle o
 **Checkpoint Retraining**
 
 ```bash
-finetune_continue.sh
+bash scripts/finetune_continue.sh
 ```
 
 - Set the `lora_checkpoint`
@@ -647,8 +643,8 @@ For more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tre
 - [x] Add llama c++ inference
 - [x] Add gptq quantification tools
 - [x] Add incremental training
+- [x] train on multi-turn instruction dataset
 - [ ] add langchain
-- [ ] train on multi-turn instruction dataset
 
 # Star History
 [![Star History Chart](https://api.star-history.com/svg?repos=Facico/Chinese-Vicuna&type=Date)](https://star-history.com/#Facico/Chinese-Vicuna&Date)
