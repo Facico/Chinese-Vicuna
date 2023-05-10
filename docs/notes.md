@@ -1,6 +1,10 @@
+# FAQ
+
 仓库里100多个issue了，基本可以涵盖该项目的各种问题，由于很多人都没有找相似issue的习惯，这里整理一份合集。不一定全，但提issue之前请务必看一看有没有和你问题一样的。
 
-## 前情提要：
+关于硬件配置等问题这里也有总结整理，请多加搜索
+
+## 可能遇到的问题：
 
 ### 1、GPU版本的问题（非常重要）
 由于我们需要使用8bit以及对应的仓库bitsandbytes，8bit优化在适配性会有些问题，**对于GPU显卡的compute capability<7.5的显卡都会有不适配的问题**（这个可以自己去搜一下），这种问题会产生以下问题：
@@ -281,7 +285,7 @@ colab数据无法下载？colab也需要翻墙，可以使用我们提供的百�
 
 有些问题通过邮件交流起来比较繁琐，可以在群里交流。由于群建立其实没多久，同时也没有对该项目进行任何推广、拉赞助等操作，群里的人可能不是很多。
 
-### 你们项目有啥特点？训练的配置是怎么样的？
+### 你们项目有啥特点？
 
 llama+中文+**低资源**+垂料训练的方案
 
@@ -294,6 +298,13 @@ llama+中文+**低资源**+垂料训练的方案
 - 初衷就是因为当时大家都是靠比较大的资源来训练的，我们也就是给大家提供了一个低资源的解决方案
 
 - 同时给大家提供低资源的垂料训练方案
+
+### 训练的配置是怎么样的？除了7B能训练吗？大于256截断长度能训练吗？最低配置是什么？
+
+训练的硬件要求主要取决于训练序列长度、`mirco batch size`大小，以及训练时间你是否能接受。
+
+- mirco batch size设置小一点，11G的2080Ti也能跑更大长度的
+- mirco batch size设置为1，24G的3090Ti可以训练2048长度的
 
 我们目前总结的大致的训练配置如下(欢迎PR补充)：
 
@@ -314,6 +325,13 @@ llama+中文+**低资源**+垂料训练的方案
 - 训练的时候，显存占用和训练的速度和序列长度密切相关，比如序列长度256显存占用不超过11G，这个时候可以在2080Ti上微调7B，序列长度如果是2048，则显存占用会骤增到20G，就要上3090或者4090才能微调7B了；
 - 同理，13B在3090/4090上是可以微调的，2048的时候microbatch降到1也是可以跑的
 - 另外，有人发现在A100-40G上增大batch没有明显的提速，这可能是因为`int8`比较吃算力（比如相同的配置fp16快于int8），算力吃满后增加batch也不能提高吞吐量，另一方面A100-40G的int8算力其实和4090差不多。
+
+相关的issue：
+
+- https://github.com/Facico/Chinese-Vicuna/issues/65
+- https://github.com/Facico/Chinese-Vicuna/issues/84
+- https://github.com/Facico/Chinese-Vicuna/issues/94
+- https://github.com/Facico/Chinese-Vicuna/issues/107
 
 ### 和fastchat他们的vicuna是什么关系？以及效果怎么比？
 
@@ -460,21 +478,6 @@ output："好的，作为一个写诗工具人，我会根据要求的主题“x
 - https://github.com/Facico/Chinese-Vicuna/issues/121
 - https://github.com/Facico/Chinese-Vicuna/issues/122
 
-### 除了7B能训练吗？大于256截断长度能训练吗？（爆显存了可以试着调小mirco batch size）最低配置是什么？
-
-可以，取决于你的硬件大小，以及训练时间你是否能接受。
-
-- mirco batch size设置小一点，11G的2080Ti也能跑更大长度的
-
-- mirco batch size设置为2，24G的3090Ti可以训练2048长度的
-
-相关的issue：
-
-- https://github.com/Facico/Chinese-Vicuna/issues/65
-
-- https://github.com/Facico/Chinese-Vicuna/issues/84
-- https://github.com/Facico/Chinese-Vicuna/issues/94
-- https://github.com/Facico/Chinese-Vicuna/issues/107
 
 ### missing key！！！
 
@@ -602,8 +605,6 @@ cmake环境链接可以参考[这里](https://cmake.org/download/)
 - https://github.com/Facico/Chinese-Vicuna/issues/74
 
 ## ERROR
-
-
 
 ### Something went wrong Expecting value: line 1 column 1 (char 0)
 
