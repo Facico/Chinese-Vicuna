@@ -1,12 +1,12 @@
-DATA_PATH="instuct_chat_50k.jsonl"
-OUTPUT_PATH="outs/instuct_chat_50k"
-MODEL_PATH="llama-7b"
+DATA_PATH="instruct_chat_50k.jsonl"
+OUTPUT_PATH="outs/instruct_chat_50k"
+MODEL_PATH="$_mymodel/yahma_llama_7b"
 
 python finetune_chat.py \
 --data_path $DATA_PATH \
 --model_path $MODEL_PATH \
 --output_path $OUTPUT_PATH \
---micro_batch 3 \
+--micro_batch 1 \
 --total_batch 32 \
 --log_steps 100 \
 --eval_steps 0 \

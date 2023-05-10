@@ -13,6 +13,7 @@ save
 #pytorch_model.bin
 # cpp out files
 chat
+!sample/chat
 quantize
 *.o
 *.a
@@ -25,3 +26,4 @@ CMakeFiles
 Testing
 .ninja*
 build.*
+outs

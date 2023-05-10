@@ -49,7 +49,7 @@ MAX_STEPS = None
 GRADIENT_ACCUMULATION_STEPS = BATCH_SIZE // MICRO_BATCH_SIZE
 EPOCHS = 3 
 LEARNING_RATE = 3e-4  # the Karpathy constant
-CUTOFF_LEN = 512  
+CUTOFF_LEN = 2048  
 LORA_R = 8
 LORA_ALPHA = 16
 LORA_DROPOUT = 0.05
@@ -177,7 +177,7 @@ if VAL_SET_SIZE > 0:
     train_data = train_val["train"].shuffle().map(PROMPT.preprocess_train, num_proc=num_proc)
     val_data = train_val["test"].shuffle().map(PROMPT.preprocess_train, num_proc=num_proc)
 else:
-    train_data = data["train"].shuffle().map(PROMPT.preprocess_train1, num_proc=num_proc)
+    train_data = data["train"].shuffle().map(PROMPT.preprocess_train, num_proc=num_proc)
     val_data = None
 now_max_steps = max((len(data["train"]) - VAL_SET_SIZE) // BATCH_SIZE * EPOCHS, EPOCHS)
 if args.resume_from_checkpoint:
