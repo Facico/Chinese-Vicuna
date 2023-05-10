@@ -30,6 +30,10 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 
 https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-81ee-8c62dc1399b2.mp4
 
+## 注意事项！
+
+在提问题之前，请务必先看看这个[FAQ](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)，这里总结了大部分常见的问题。
+
 ## What‘s New
 - **May 10, 2023：开放有更好对话能力的 [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) . 表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chat.md)**
 - **May 10, 2023：开放上述模型的微调数据[instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl)：3万条sharegpt中文数据和2万条[alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)数据组成**
@@ -55,14 +59,6 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 -  Self-Instruct paper: https://arxiv.org/abs/2212.10560
 -  data generation: https://github.com/LianjiaTech/BELLE and https://guanaco-model.github.io/
 -  the first work: https://github.com/tatsu-lab/stanford_alpaca
-
-我们目前选择BELLE和Guanaco数据的组合作为我们的主要训练数据集。
-我们还将增加多轮instruction数据增强上下文能力。
-
-## 可能会遇到的问题
-
-在安装并使用本项目时，可能会遇到一些问题，目前遇到的各种问题总结如下：
-在提问题之前，请务必先看看这个[注意事项](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
 
 ## 目录
 
