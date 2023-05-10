@@ -7,39 +7,50 @@ import gradio as gr
 import argparse
 import warnings
 import os
-from utils import SteamGenerationMixin, printf
+from datetime import datetime
+from utils import StreamPeftGenerationMixin,StreamLlamaForCausalLM, printf
+import utils
+import copy
 assert (
     "LlamaTokenizer" in transformers._import_structure["models.llama"]
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
 from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
+import prompt
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_path", type=str, default="decapoda-research/llama-7b-hf")
-parser.add_argument("--lora_path", type=str, default="./lora-Vicuna/checkpoint-3000")
+parser.add_argument("--lora_path", type=str, default='')
 parser.add_argument("--use_typewriter", type=int, default=1)
+parser.add_argument("--prompt_type", type=str, default='chat')
 parser.add_argument("--share_link", type=int, default=0)
-parser.add_argument("--use_local", type=int, default=1)
+parser.add_argument("--show_beam", type=int, default=0)
+parser.add_argument("--int8", type=int, default=1)
 args = parser.parse_args()
-
+args.fix_token = True
+printf('>>> args:', args)
 tokenizer = LlamaTokenizer.from_pretrained(args.model_path)
 
-LOAD_8BIT = True
+LOAD_8BIT = args.int8
 BASE_MODEL = args.model_path
 LORA_WEIGHTS = args.lora_path
 
 # fix the path for local checkpoint
 lora_bin_path = os.path.join(args.lora_path, "adapter_model.bin")
-print(lora_bin_path)
-if not os.path.exists(lora_bin_path) and args.use_local:
-    pytorch_bin_path = os.path.join(args.lora_path, "pytorch_model.bin")
-    print(pytorch_bin_path)
-    if os.path.exists(pytorch_bin_path):
-        os.rename(pytorch_bin_path, lora_bin_path)
-        warnings.warn(
-            "The file name of the lora checkpoint'pytorch_model.bin' is replaced with 'adapter_model.bin'"
-        )
+if args.lora_path != '' and os.path.exists(args.lora_path):
+    if not os.path.exists(lora_bin_path):
+        pytorch_bin_path = os.path.join(args.lora_path, "pytorch_model.bin")
+        printf('>>> load lora from', pytorch_bin_path)
+        if os.path.exists(pytorch_bin_path):
+            os.rename(pytorch_bin_path, lora_bin_path)
+            warnings.warn(
+                "The file name of the lora checkpoint'pytorch_model.bin' is replaced with 'adapter_model.bin'"
+            )
+        else:
+            assert ('Checkpoint is not Found!')
     else:
-        assert ('Checkpoint is not Found!')
+        printf('>>> load lora from', lora_bin_path)
+else:
+    printf('>>> load lora from huggingface url', args.lora_path)
 
 if torch.cuda.is_available():
     device = "cuda"
@@ -53,22 +64,32 @@ except:
     pass
 
 if device == "cuda":
-    model = LlamaForCausalLM.from_pretrained(
-        BASE_MODEL,
-        load_in_8bit=LOAD_8BIT,
-        torch_dtype=torch.float16,
-        device_map={"": 0},
-    )
-    model = SteamGenerationMixin.from_pretrained(
-        model, LORA_WEIGHTS, torch_dtype=torch.float16, device_map={"": 0}
-    )
+    print(f'>>> load raw models from {BASE_MODEL}')
+    if args.lora_path == "":
+        model = StreamLlamaForCausalLM.from_pretrained(
+            BASE_MODEL,
+            load_in_8bit=LOAD_8BIT,
+            torch_dtype=torch.float16,
+            device_map={"": 0},
+        )    
+    else:
+        print(f'>>> load lora models from {LORA_WEIGHTS}')
+        model = LlamaForCausalLM.from_pretrained(
+            BASE_MODEL,
+            load_in_8bit=LOAD_8BIT,
+            torch_dtype=torch.float16,
+            device_map={"": 0},
+        )
+        model = StreamPeftGenerationMixin.from_pretrained(
+                model, LORA_WEIGHTS, torch_dtype=torch.float16, load_in_8bit=LOAD_8BIT,  device_map={"": 0}
+        )
 elif device == "mps":
     model = LlamaForCausalLM.from_pretrained(
         BASE_MODEL,
         device_map={"": device},
         torch_dtype=torch.float16,
     )
-    model = SteamGenerationMixin.from_pretrained(
+    model = StreamPeftGenerationMixin.from_pretrained(
         model,
         LORA_WEIGHTS,
         device_map={"": device},
@@ -78,92 +99,19 @@ else:
     model = LlamaForCausalLM.from_pretrained(
         BASE_MODEL, device_map={"": device}, low_cpu_mem_usage=True
     )
-    model = SteamGenerationMixin.from_pretrained(
+    model = StreamPeftGenerationMixin.from_pretrained(
         model,
         LORA_WEIGHTS,
         device_map={"": device},
     )
-
-def generate_prompt_and_tokenize0(data_point, maxlen):
-    # cutoff the history to avoid exceeding length limit
-    init_prompt = PROMPT_DICT['prompt']
-    init_ids = tokenizer(init_prompt)['input_ids']
-    seqlen = len(init_ids)
-    input_prompt = PROMPT_DICT['input'].format_map(data_point)
-    input_ids = tokenizer(input_prompt)['input_ids']
-    seqlen += len(input_ids)
-    if seqlen > maxlen:
-        raise Exception('>>> The input question is too long! Cosidering increase the Max Memory value or decrease the length of input! ')
-    history_prompt = ''
-    for history in data_point['history']:
-        history_prompt+= PROMPT_DICT['history'].format_map(history) 
-    # cutoff
-    history_ids = tokenizer(history_prompt)['input_ids'][-(maxlen - seqlen):]
-    input_ids = init_ids + history_ids + input_ids
-    return input_ids
-
-def postprocess0(text, render=True):
-    # clip user
-    text = text.split("### Assistant:")[1].strip()
-    text = text.replace('�','').replace("Belle", "Vicuna")
-    return text
-
-def generate_prompt_and_tokenize1(data_point, maxlen):
-    input_prompt = "\n".join(["User:" + i['input']+"\n"+"Assistant:" + i['output'] for i in data_point['history']]) + "\nUser:" + data_point['input'] + "\nAssistant:"
-    input_prompt = input_prompt[-maxlen:]
-    input_prompt = PROMPT_DICT['prompt'].format_map({'input':input_prompt})
-    input_ids = tokenizer(input_prompt)["input_ids"]
-    return input_ids
-
-def postprocess1(text, render=True):
-    output = text.split("### Response:")[1].strip()
-    output = output.replace("Belle", "Vicuna")
-    printf('>>> output:', output)
-    if '###' in output:
-        output = output.split("###")[0]
-    if 'User' in output:
-        output = output.split("User")[0]
-    output = output.replace('�','') 
-    if render:
-        # fix gradio chatbot markdown code render bug
-        lines = output.split("\n")
-        for i, line in enumerate(lines):
-            if "```" in line:
-                if line != "```":
-                    lines[i] = f'<pre><code class="language-{lines[i][3:]}">'
-                else:
-                    lines[i] = '</code></pre>'
-            else:
-                if i > 0:
-                    lines[i] = "<br/>" + line.replace("<", "&lt;").replace(">", "&gt;").replace("__", '\_\_')
-        output =  "".join(lines)
-        # output = output.replace('<br/><pre>','\n<pre>') work for html; but not for gradio
-    return output
-
-PROMPT_DICT0 = {
-    'prompt': (
-        "The following is a conversation between an AI assistant called Assistant and a human user called User."
-        "Assistant is is intelligent, knowledgeable, wise and polite.\n\n"
-    ),
-    'history': (
-        "User:{input}\n\nAssistant:{output}\n\n"
-    ),
-    'input': (
-        "User:{input}\n\n### Assistant:"
-    ),
-    'preprocess': generate_prompt_and_tokenize0,
-    'postprocess': postprocess0,
-}
-PROMPT_DICT1 = {
-    'prompt': (
-        "The following is a conversation between an AI assistant called Assistant and a human user called User.\n\n"
-        "### Instruction:\n{input}\n\n### Response:"
-    ),
-    'preprocess': generate_prompt_and_tokenize1,
-    'postprocess': postprocess1,
-}
-PROMPT_DICT = None
-
+# fix tokenizer bug
+if args.fix_token and tokenizer.eos_token_id != 2:
+    warnings.warn(
+        "The tokenizer eos token may be wrong. please check you llama-checkpoint"
+    )
+    model.config.bos_token_id = tokenizer.bos_token_id = 1
+    model.config.eos_token_id = tokenizer.eos_token_id = 2
+model.config.pad_token_id = tokenizer.pad_token_id = 0  # same as unk token id
 if not LOAD_8BIT:
     model.half()  # seems to fix bugs for some users.
 

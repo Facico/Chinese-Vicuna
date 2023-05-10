@@ -6,7 +6,7 @@ import gradio as gr
 import argparse
 import warnings
 import os
-from utils import SteamGenerationMixin
+from utils import StreamPeftGenerationMixin,StreamLlamaForCausalLM
 assert (
     "LlamaTokenizer" in transformers._import_structure["models.llama"]
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
@@ -58,7 +58,7 @@ if device == "cuda":
         torch_dtype=torch.float16,
         device_map={"": 0},
     )
-    model = SteamGenerationMixin.from_pretrained(
+    model = StreamPeftGenerationMixin.from_pretrained(
         model, LORA_WEIGHTS, torch_dtype=torch.float16, device_map={"": 0}
     )
 elif device == "mps":
@@ -67,7 +67,7 @@ elif device == "mps":
         device_map={"": device},
         torch_dtype=torch.float16,
     )
-    model = SteamGenerationMixin.from_pretrained(
+    model = StreamPeftGenerationMixin.from_pretrained(
         model,
         LORA_WEIGHTS,
         device_map={"": device},
@@ -77,7 +77,7 @@ else:
     model = LlamaForCausalLM.from_pretrained(
         BASE_MODEL, device_map={"": device}, low_cpu_mem_usage=True
     )
-    model = SteamGenerationMixin.from_pretrained(
+    model = StreamPeftGenerationMixin.from_pretrained(
         model,
         LORA_WEIGHTS,
         device_map={"": device},

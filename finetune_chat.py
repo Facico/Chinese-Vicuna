@@ -17,7 +17,9 @@ import transformers
 import argparse
 import warnings
 from tqdm import tqdm
+from functools import partial
 import utils
+import prompt
 assert (
     "LlamaTokenizer" in transformers._import_structure["models.llama"]
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
@@ -25,6 +27,7 @@ assert (
 # 0. prepare args and logger
 parser = argparse.ArgumentParser()
 parser.add_argument("--wandb", action="store_true", default=False)
+parser.add_argument("--prompt_type", type=str, default="chat")
 parser.add_argument("--data_path", type=str, default="merge.json")
 parser.add_argument("--output_path", type=str, default="lora-Vicuna")
 parser.add_argument("--model_path", type=str, default="decapoda-research/llama-7b-hf")
@@ -33,12 +36,11 @@ parser.add_argument("--total_batch", type=int, default=128)
 parser.add_argument("--log_steps", type=int, default=100)
 parser.add_argument("--eval_steps", type=int, default=200)
 parser.add_argument("--save_steps", type=int, default=200)
-parser.add_argument("--warmup_steps", type=int, default=200)
+parser.add_argument("--warmup_ratio", type=float, default=0.05)
 parser.add_argument("--test_size", type=int, default=200)
 parser.add_argument("--resume_from_checkpoint", type=str, default=None)
-parser.add_argument("--ignore_data_skip", type=str, default="False")
+parser.add_argument("--ignore_data_skip", type=bool, default=False)
 args = parser.parse_args()
-
 if not args.wandb:
     os.environ["WANDB_MODE"] = "disable"
 MICRO_BATCH_SIZE = args.micro_batch  # this could actually be 5 but i like powers of 2
@@ -47,7 +49,7 @@ MAX_STEPS = None
 GRADIENT_ACCUMULATION_STEPS = BATCH_SIZE // MICRO_BATCH_SIZE
 EPOCHS = 3 
 LEARNING_RATE = 3e-4  # the Karpathy constant
-CUTOFF_LEN = 768  
+CUTOFF_LEN = 512  
 LORA_R = 8
 LORA_ALPHA = 16
 LORA_DROPOUT = 0.05
@@ -56,6 +58,7 @@ TARGET_MODULES = [
     "q_proj",
     "v_proj",
     "k_proj",
+    "o_proj",
     "down_proj",
     "gate_proj",
     "up_proj",
@@ -92,124 +95,41 @@ if args.resume_from_checkpoint:
         raise Exception(f'{old_args_path} is not exist!')
     # checkpoint = os.path.join(args.resume_from_checkpoint, 'pytorch_model.bin')
 
-logger = utils.set_console_logger(__name__)
+logger = utils.set_file_logger(__name__,OUTPUT_DIR)
 # 1. load dataset
 logger.info(f'>>> processing data from {DATA_PATH}')
+logger.info(f'>>> using {args}')
+
 train_tokenizer = LlamaTokenizer.from_pretrained(args.model_path, add_eos_token=True)
 # unk. we want this to be different from the eos token
 train_tokenizer.pad_token_id = 0  
 # cannot use eos in generation!
 # tokenizer.padding_side = "left"  # Allow batched inference
 test_tokenizer = LlamaTokenizer.from_pretrained(args.model_path)
-data = load_dataset('json', data_files=DATA_PATH)
-# data = utils.from_jsonl(DATA_PATH)
-# data = Dataset.from_json(DATA_PATH)
-PROMPT_DICT = {
-    "prompt_input": (
-        "Below is an instruction that describes a task, paired with an input that provides further context. "
-        "Write a response that appropriately completes the request.\n\n"
-        "### Instruction:\n{instruction}\n\n### Input:\n{input}\n\n### Response:"
-    ),
-    "prompt_no_input": (
-        "Below is an instruction that describes a task. "
-        "Write a response that appropriately completes the request.\n\n"
-        "### Instruction:\n{instruction}\n\n### Response:"
-    ),
-}
-CHAT_DICT = {
-    'prompt1': (
-        "The following is a conversation between an AI assistant called Assistant and a human user called User. "
-        "The assistant is intelligent, knowledgeable and polite to answer questions of user.\n\n"
-    ),
-    'prompt1.5': 'System:{context}\n\n',
-    'prompt2': "User:{input}\n\nAssistant:{output}\n\n",
-    'prompt3': "User:{input}\n\nAssistant:"
-}
-
-def generate_and_tokenize_prompt_0(data_point, stage='train'):
-    # This function masks out the labels for the input,
-    # so that our loss is computed only on the response
-    logger.debug(data_point)
-    user_prompt = CHAT_DICT['prompt1']
-    lens = len(data_point)
-    for i in range(lens-1):
-        user_prompt += CHAT_DICT['prompt2'].format_map(data_point[i])
-    user_prompt += CHAT_DICT['prompt3'].format_map(data_point[-1])
-    logger.debug(user_prompt)
-    if stage == 'train':
-        len_user_prompt_tokens = (len(train_tokenizer(
-            user_prompt,
-            truncation=True,
-            max_length=CUTOFF_LEN + 1,
-        )["input_ids"])- 1)  # no eos token
-        full_tokens = train_tokenizer(
-            user_prompt + data_point["output"],
-            truncation=True,
-            max_length=CUTOFF_LEN + 1,
-            padding="max_length",
-        )["input_ids"][:-1]
-        return {
-            "input_ids": full_tokens,
-            "labels": [-100] * len_user_prompt_tokens
-            + full_tokens[len_user_prompt_tokens:],
-            "attention_mask": [1] * (len(full_tokens)),
-        }
-    else:
-        inputs = test_tokenizer(user_prompt, return_tensors="pt")["input_ids"]
-        return inputs
-
-def generate_and_tokenize_prompt(data_point, stage='train'):
-    # This function masks out the labels for the input,
-    # so that our loss is computed only on the response.
-    logger.debug(data_point)
-    user_prompt = CHAT_DICT['prompt1']
-    lens = len(data_point['input'])
-    for i in range(lens-1):
-        user_prompt += CHAT_DICT['prompt2'].format_map({'input':data_point['input'][i],'output':data_point['output'][i]})
-    user_prompt += CHAT_DICT['prompt3'].format_map({'input':data_point['input'][-1]})
-    logger.debug(user_prompt)
-    if stage == 'train':
-        len_user_prompt_tokens = (len(train_tokenizer(
-            user_prompt,
-            truncation=True,
-            max_length=CUTOFF_LEN + 1,
-        )["input_ids"])- 1)  # no eos token
-        full_tokens = train_tokenizer(
-            user_prompt + data_point["output"][-1],
-            truncation=True,
-            padding=False,
-            max_length=CUTOFF_LEN + 1,
-        )["input_ids"][:-1]
-        return {
-            "input_ids": full_tokens,
-            "labels": [-100] * len_user_prompt_tokens
-            + full_tokens[len_user_prompt_tokens:],
-            "attention_mask": [1] * (len(full_tokens)),
-        }
-    else:
-        inputs = test_tokenizer(user_prompt, return_tensors="pt")["input_ids"]
-        return inputs
-
-# speedup dataset processing by multi-process
-num_proc =(os.cpu_count()//2+1)
-if VAL_SET_SIZE > 0:
-    train_val = data["train"].train_test_split(
-        test_size=VAL_SET_SIZE, shuffle=True, seed=42
-    )
-    train_data = train_val["train"].shuffle().map(generate_and_tokenize_prompt, num_proc=num_proc)
-    val_data = train_val["test"].shuffle().map(generate_and_tokenize_prompt, num_proc=num_proc)
+if args.prompt_type == 'instruct':
+    PROMPT = prompt.instruct_prompt(train_tokenizer, CUTOFF_LEN)
+elif args.prompt_type == 'chat':
+    PROMPT = prompt.chat_prompt(train_tokenizer,CUTOFF_LEN)
 else:
-    train_data = data["train"].shuffle().map(generate_and_tokenize_prompt, num_proc=num_proc)
-    val_data = None
+    raise Exception('not support')
+# check tokenizer
+data = load_dataset('json', data_files=DATA_PATH)
+import random;start = random.randint(1, 100)
+examples = Dataset.from_dict(data['train'][start:start+5]).map(PROMPT.preprocess_train)
+for example in examples:
+    logger.info(f'>>> using prompt {args.prompt_type}, prompt example:\n { train_tokenizer.decode(example["input_ids"]) }')
+    logger.info(f'>>> tokenizer labels: { train_tokenizer.decode([ 0 if l==-100 else l for l in example["labels"]])}')
+    logger.info(f'>>> tokenizer example: { example["input_ids"][:10] }...{ example["input_ids"][-10:]}')
 
 # 2. load model and checkpoints
 logger.info(f'>>> load model from {args.model_path}')
 model = LlamaForCausalLM.from_pretrained(
     args.model_path,
-    load_in_8bit=True,
+    load_in_8bit=False,
     device_map=device_map,
-)
-model = prepare_model_for_int8_training(model)
+    torch_dtype=torch.float16,
+).half()
+#model = prepare_model_for_int8_training(model)
 config = LoraConfig(
     r=LORA_R,
     lora_alpha=LORA_ALPHA,
@@ -219,6 +139,46 @@ config = LoraConfig(
     task_type="CAUSAL_LM",
 )
 model = get_peft_model(model, config)
+if args.resume_from_checkpoint:
+    checkpoint_name = os.path.join(args.resume_from_checkpoint, "pytorch_model.bin")
+    # adapter_model.bin
+    if not os.path.exists(checkpoint_name):
+        pytorch_bin_path = checkpoint_name
+        checkpoint_name = os.path.join(args.resume_from_checkpoint, "adapter_model.bin")
+        if os.path.exists(checkpoint_name):
+            os.rename(checkpoint_name, pytorch_bin_path)
+            logger.warning("The file name of the lora checkpoint'adapter_model.bin' is replaced with 'pytorch_model.bin'")
+        else:
+            args.resume_from_checkpoint = None  # So the trainer won't try loading its state
+    # pytorch_model.bin
+    if os.path.exists(checkpoint_name):
+        logger.info(f'>>> load lora from {checkpoint_name}')
+        adapters_weights = torch.load(checkpoint_name)
+        model = set_peft_model_state_dict(model, adapters_weights)
+    else:
+        raise Exception(f"Checkpoint {checkpoint_name} not found with resume_from_checkpoint=True!")
+
+trainable_params = 0
+all_param = 0
+for _, param in model.named_parameters():
+    num_params = param.numel()
+    # if using DS Zero 3 and the weights are initialized empty
+    if num_params == 0 and hasattr(param, "ds_numel"):
+        num_params = param.ds_numel
+    all_param += num_params
+    if param.requires_grad:
+        trainable_params += num_params
+logger.info(f">>> trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}")
+
+# 3. speedup dataset processing by multi-process
+num_proc = (os.cpu_count())
+if VAL_SET_SIZE > 0:
+    train_val = data["train"].train_test_split(test_size=VAL_SET_SIZE, shuffle=True, seed=42)
+    train_data = train_val["train"].shuffle().map(PROMPT.preprocess_train, num_proc=num_proc)
+    val_data = train_val["test"].shuffle().map(PROMPT.preprocess_train, num_proc=num_proc)
+else:
+    train_data = data["train"].shuffle().map(PROMPT.preprocess_train1, num_proc=num_proc)
+    val_data = None
 now_max_steps = max((len(data["train"]) - VAL_SET_SIZE) // BATCH_SIZE * EPOCHS, EPOCHS)
 if args.resume_from_checkpoint:
     # the trainer will ignore the state max_steps and caculate max_steps based on epochs,
@@ -230,39 +190,16 @@ if args.resume_from_checkpoint:
         base_max_steps = base_train_args["max_steps"]
         resume_scale = base_max_steps / now_max_steps
         if base_max_steps > now_max_steps:
-            warnings.warn("epoch {} replace to the base_max_steps {}".format(EPOCHS, base_max_steps))
+            logger.warning(f"epoch {EPOCHS}:{MAX_STEPS} replace to the base_max_steps {base_max_steps}")
             EPOCHS = None
             MAX_STEPS = base_max_steps
         else:
             MAX_STEPS = now_max_steps
     assert MAX_STEPS is not None
-    checkpoint_name = os.path.join(
-        args.resume_from_checkpoint, "pytorch_model.bin"
-    )
-    if not os.path.exists(checkpoint_name):
-        pytorch_bin_path = checkpoint_name
-        checkpoint_name = os.path.join(
-            args.resume_from_checkpoint, "adapter_model.bin"
-        )
-        if os.path.exists(checkpoint_name):
-            os.rename(checkpoint_name, pytorch_bin_path)
-            warnings.warn("The file name of the lora checkpoint'adapter_model.bin' is replaced with 'pytorch_model.bin'")
-        else:
-            args.resume_from_checkpoint = None  # So the trainer won't try loading its state
-    # The two files above have a different name depending on how they were saved, but are actually the same.
-    if os.path.exists(checkpoint_name):
-        print(f"Restarting from {checkpoint_name}")
-        adapters_weights = torch.load(checkpoint_name)
-        logger.info(f'>>> load lora from {checkpoint_name}')
-        model = set_peft_model_state_dict(model, adapters_weights)
-    else:
-        print(f"Checkpoint {checkpoint_name} not found")
 else:
     MAX_STEPS = now_max_steps
 
-model.print_trainable_parameters()
-
-# 3. start training
+# 4. start training
 class CustomCallback(TrainerCallback):
     
     def __init__(self, trainer) -> None:
@@ -273,55 +210,15 @@ class CustomCallback(TrainerCallback):
             top_p=0.75,
             top_k=40,
             num_beams=2,
-            bos_token_id=1,
-            eos_token_id=2,
-            pad_token_id=0,
+            bos_token_id=train_tokenizer.bos_token_id,
+            eos_token_id=train_tokenizer.eos_token_id,
+            pad_token_id=train_tokenizer.pad_token_id,
             max_new_tokens=1024, # max_length=max_new_tokens+input_sequence
             min_new_tokens=1, # min_length=min_new_tokens+input_sequence
             bad_words_ids=test_tokenizer(['\n\nUser:','\n\nAssistant:'], add_special_tokens=False).input_ids
         )
         self.repetition_penalty=1.3
         self.logger = utils.set_file_logger('transformers.trainer', trainer.args.output_dir)
-        self.test_file = 'sample/test_multi.jsonl'
-
-    def on_train_begin(self, args, state, control, **kwargs):
-        # self.test(self.trainer.model, args,state)
-        pass
-
-    # save model的时候调用
-    def on_save(self, args, state, control, model, **kwargs):
-        # self.test(model, args,state)
-        pass
-
-    def test(self, model, args, state):
-        checkpoint_folder = f"checkpoint-{state.global_step}"
-        run_dir = self.trainer._get_output_dir(trial=None)
-        output_dir = os.path.join(run_dir, checkpoint_folder)
-        os.makedirs(output_dir, exist_ok=True)
-        output_file = os.path.join(output_dir, 'gen.txt')
-        # no batch 只能测单轮对话
-        # self.trainer.model 和 model 是同一个
-        model.eval()
-        with torch.no_grad():
-            test_datas = utils.from_jsonl(self.test_file)
-            total = len(test_datas)
-            for data in test_datas:
-                inputs = generate_and_tokenize_prompt_0(data, 'test')
-                len_input = len(inputs[0])
-                input_ids = inputs.to(args.device)
-                generation_output = model.generate(
-                    input_ids=input_ids,
-                    generation_config=self.generation_config,
-                    return_dict_in_generate=True,
-                    output_scores=False,
-                    repetition_penalty=self.repetition_penalty,
-                )
-                output = generation_output.sequences[0]
-                # data['output'] = test_tokenizer.decode(output).split("Assistant:")[-1].strip()
-                data[-1]['gen'] = test_tokenizer.decode(output[len_input:])
-                logger.info(data)
-            utils.to_jsonl(test_datas, output_file)
-        model.train()
 
     def on_log(self, args, state, control, logs, **kwargs):
         logger.info(logs)
@@ -333,7 +230,7 @@ trainer = transformers.Trainer(
     args=transformers.TrainingArguments(
         per_device_train_batch_size=MICRO_BATCH_SIZE,
         gradient_accumulation_steps=GRADIENT_ACCUMULATION_STEPS,
-        warmup_steps=args.warmup_steps,
+        warmup_ratio=args.warmup_ratio,
         num_train_epochs=EPOCHS,
         max_steps=MAX_STEPS,
         learning_rate=LEARNING_RATE,
@@ -350,7 +247,7 @@ trainer = transformers.Trainer(
         report_to="wandb" if args.wandb else [],
         ignore_data_skip=args.ignore_data_skip,
     ),
-    data_collator=transformers.DataCollatorForSeq2Seq(train_tokenizer)
+    data_collator=PROMPT.data_collator()
 )
 trainer.add_callback(CustomCallback(trainer))
 model.config.use_cache = False
@@ -363,15 +260,5 @@ model.state_dict = (
 if torch.__version__ >= "2" and sys.platform != "win32":
     model = torch.compile(model)
 
-logger.info("\n You can disregard the warning about missing keys \n 下面关于missing keys的warning可以忽略")
-
-try:
-    trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
-    model.save_pretrained(OUTPUT_DIR)
-except:
-    import sys,pdb,bdb
-    type, value, tb = sys.exc_info()
-    if type == bdb.BdbQuit:
-        exit()
-    print(type,value)
-    pdb.post_mortem(tb)
+trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
+model.save_pretrained(OUTPUT_DIR)
