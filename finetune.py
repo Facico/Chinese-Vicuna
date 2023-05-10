@@ -51,7 +51,7 @@ TARGET_MODULES = [
     "q_proj",
     "v_proj",
 ]
-DATA_PATH = args.data_path #"/home/cciip/private/fanchenghao/dataset/instruction/merge.json"
+DATA_PATH = args.data_path 
 OUTPUT_DIR = args.output_path #"lora-Vicuna"
 
 device_map = "auto"

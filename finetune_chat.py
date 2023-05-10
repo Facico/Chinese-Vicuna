@@ -125,11 +125,11 @@ for example in examples:
 logger.info(f'>>> load model from {args.model_path}')
 model = LlamaForCausalLM.from_pretrained(
     args.model_path,
-    load_in_8bit=False,
+    load_in_8bit=True,
     device_map=device_map,
     torch_dtype=torch.float16,
-).half()
-#model = prepare_model_for_int8_training(model)
+)
+model = prepare_model_for_int8_training(model)
 config = LoraConfig(
     r=LORA_R,
     lora_alpha=LORA_ALPHA,

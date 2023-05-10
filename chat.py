@@ -119,6 +119,53 @@ model.eval()
 if torch.__version__ >= "2" and sys.platform != "win32":
     model = torch.compile(model)
 
+def save(
+    inputs,
+    history,
+    temperature=0.1,
+    top_p=0.75,
+    top_k=40,
+    num_beams=4,
+    max_new_tokens=128,
+    min_new_tokens=1,
+    repetition_penalty=2.0,
+    max_memory=1024,
+    do_sample=False,
+    prompt_type='0',
+    **kwargs, 
+):
+    history = [] if history is None else history
+    data_point = {}
+    if prompt_type == 'instruct':
+        PROMPT = prompt.instruct_prompt(tokenizer,max_memory)
+    elif prompt_type == 'chat':
+        PROMPT = prompt.chat_prompt(tokenizer,max_memory)
+    else:
+        raise Exception('not support')
+    data_point['history'] = history
+    # 实际上是每一步都可以不一样，这里只保存最后一步
+    data_point['generation_parameter'] = {
+        "temperature":temperature,
+        "top_p":top_p,
+        "top_k":top_k,
+        "num_beams":num_beams,
+        "bos_token_id":tokenizer.bos_token_id,
+        "eos_token_id":tokenizer.eos_token_id,
+        "pad_token_id":tokenizer.pad_token_id,
+        "max_new_tokens":max_new_tokens,
+        "min_new_tokens":min_new_tokens, 
+        "do_sample":do_sample,
+        "repetition_penalty":repetition_penalty,
+        "max_memory":max_memory,
+    }
+    data_point['info'] = args.__dict__
+    print(data_point)
+    if args.int8:
+        file_name = f"{args.lora_path}/{args.prompt_type.replace(' ','_')}_int8.jsonl"
+    else:
+        file_name = f"{args.lora_path}/{args.prompt_type.replace(' ','_')}_fp16.jsonl"
+    utils.to_jsonl([data_point], file_name)
+
 def evaluate(
     inputs,
     history,
@@ -134,35 +181,40 @@ def evaluate(
     prompt_type='0',
     **kwargs,
 ):
-    global PROMPT_DICT
-    if prompt_type == '0':
-        PROMPT_DICT = PROMPT_DICT0
-    elif prompt_type == '1':
-        PROMPT_DICT = PROMPT_DICT1
+    history = [] if history is None else history
+    data_point = {}
+    if prompt_type == 'instruct':
+        PROMPT = prompt.instruct_prompt(tokenizer,max_memory)
+    elif prompt_type == 'chat':
+        PROMPT = prompt.chat_prompt(tokenizer,max_memory)
     else:
         raise Exception('not support')
     
-    history = [] if history is None else history
-    data_point = {
-        'history': history,
-        'input': inputs,
-    }
-    printf(data_point)
-    input_ids = PROMPT_DICT['preprocess'](data_point, max_memory)
-    printf('>>> input prompts:', tokenizer.decode(input_ids))
+    data_point['history'] = copy.deepcopy(history)
+    data_point['input'] = inputs
+
+    input_ids = PROMPT.preprocess_gen(data_point)
+    
+    printf('------------------------------')
+    printf(tokenizer.decode(input_ids))
     input_ids = torch.tensor([input_ids]).to(device) # batch=1
-    printf(input_ids.shape)
+
+    printf('------------------------------')
+    printf('shape',input_ids.size())
+    printf('------------------------------')
     generation_config = GenerationConfig(
         temperature=temperature,
         top_p=top_p,
         top_k=top_k,
         num_beams=num_beams,
-        bos_token_id=1,
-        eos_token_id=2,
-        pad_token_id=0,
+        bos_token_id=tokenizer.bos_token_id,
+        eos_token_id=tokenizer.eos_token_id,
+        pad_token_id=tokenizer.pad_token_id,
         max_new_tokens=max_new_tokens, # max_length=max_new_tokens+input_sequence
         min_new_tokens=min_new_tokens, # min_length=min_new_tokens+input_sequence
         do_sample=do_sample,
+        bad_words_ids=tokenizer(['\n\nUser:','\n\nAssistant:'], add_special_tokens=False).input_ids,
+
         **kwargs,
     )
     
@@ -181,30 +233,38 @@ def evaluate(
                     output_scores=False,
                     repetition_penalty=float(repetition_penalty),
                 ):
+                    gen_token = generation_output[0][-1].item()
+                    printf(gen_token, end='(')
+                    printf(tokenizer.decode(gen_token), end=') ')
+                    
                     outputs = tokenizer.batch_decode(generation_output)
-                    show_text = "\n--------------------------------------------\n".join(
-                        [PROMPT_DICT['postprocess'](output)+" ▌" for output in outputs]
-                    )
-                    printf(show_text)
+                    if args.show_beam:
+                        show_text = "\n--------------------------------------------\n".join(
+                            [ PROMPT.postprocess(output)+" ▌" for output in outputs]
+                        )
+                    else:
+                        show_text = PROMPT.postprocess(outputs[0])+" ▌"
                     yield return_text +[(inputs, show_text)], history
             except torch.cuda.OutOfMemoryError:
+                print('CUDA out of memory')
                 import gc
                 gc.collect()
                 torch.cuda.empty_cache()
                 out_memory=True
             # finally only one
-            show_text = PROMPT_DICT['postprocess'](outputs[0] if outputs is not None else '### Response:')
+            printf('[EOS]', end='\n')
+            show_text = PROMPT.postprocess(outputs[0] if outputs is not None else '### Response:')
             return_len = len(show_text)
             if out_memory==True:
                 out_memory=False
                 show_text+= '<p style="color:#FF0000"> [GPU Out Of Memory] </p> '
             if return_len > 0:
-                output = PROMPT_DICT['postprocess'](outputs[0], render=False)
+                output = PROMPT.postprocess(outputs[0], render=False)
                 history.append({
                     'input': inputs,
                     'output': output,
                 })
-            printf(show_text)
+
             return_text += [(inputs, show_text)]
             yield return_text, history
         # common 
@@ -220,7 +280,7 @@ def evaluate(
                 )
                 s = generation_output.sequences[0]
                 output = tokenizer.decode(s)
-                output = PROMPT_DICT['postprocess'](output)
+                output = PROMPT.postprocess(output)
                 history.append({
                     'input': inputs,
                     'output': output,
@@ -236,6 +296,11 @@ def evaluate(
                 return_text += [(inputs, show_text)]
                 yield return_text, history
 
+def clear():
+    import gc
+    gc.collect()
+    torch.cuda.empty_cache()
+    return None, None
 
 
 # gr.Interface对chatbot的clear有bug，因此我们重新实现了一个基于gr.block的UI逻辑
@@ -263,21 +328,21 @@ with gr.Blocks() as demo:
                 topk = gr.components.Slider(minimum=0, maximum=100, step=1, value=60, label="Top k")
                 beam_number = gr.components.Slider(minimum=1, maximum=10, step=1, value=4, label="Beams Number")
                 max_new_token = gr.components.Slider(
-                    minimum=1, maximum=2000, step=1, value=256, label="Max New Tokens"
+                    minimum=1, maximum=2048, step=1, value=256, label="Max New Tokens"
                 )
                 min_new_token = gr.components.Slider(
-                    minimum=1, maximum=100, step=1, value=5, label="Min New Tokens"
+                    minimum=1, maximum=1024, step=1, value=5, label="Min New Tokens"
                 )
                 repeat_penal = gr.components.Slider(
                     minimum=0.1, maximum=10.0, step=0.1, value=2.0, label="Repetition Penalty"
                 )
                 max_memory = gr.components.Slider(
-                    minimum=0, maximum=2048, step=1, value=256, label="Max Memory"
+                    minimum=0, maximum=2048, step=1, value=2048, label="Max Memory"
                 )
                 do_sample = gr.components.Checkbox(label="Use sample")
                 # must be str, not number !
                 type_of_prompt = gr.components.Dropdown(
-                    ['0', '1'], value='1', label="Prompt Type", info="select the specific prompt; use after clear history"
+                    ['instruct', 'chat'], value=args.prompt_type, label="Prompt Type", info="select the specific prompt; use after clear history"
                 )
                 input_components = [
                     input, history, temperature, topp, topk, beam_number, max_new_token, min_new_token, repeat_penal, max_memory, do_sample, type_of_prompt
@@ -295,7 +360,8 @@ with gr.Blocks() as demo:
         with gr.Column(variant="panel"):
             chatbot = gr.Chatbot().style(height=1024)
             output_components = [ chatbot, history ]  
-
+            with gr.Row():
+                save_btn = gr.Button("Save Chat")
         def wrapper(*args):
             # here to support the change between the stop and submit button
             try:
@@ -315,7 +381,11 @@ with gr.Blocks() as demo:
             return history[:-1], chatbot[:-1]
 
         extra_output = [submit_btn, stop_btn]
-
+        save_btn.click(
+            save, 
+            input_components, 
+            None, 
+        )
         pred = submit_btn.click(
             wrapper, 
             input_components, 
@@ -366,6 +436,6 @@ with gr.Blocks() as demo:
             )}
             """,
         )
-        clear_history.click(lambda: (None, None), None, [history, chatbot], queue=False)
+        clear_history.click(clear, None, [history, chatbot], queue=False)
 
-demo.queue().launch(share=args.share_link!=0, inbrowser=True)
+demo.queue().launch(share=args.share_link)
