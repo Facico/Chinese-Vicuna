@@ -10,6 +10,12 @@
 
 鉴于[llama](https://github.com/facebookresearch/llama),[alpaca](https://github.com/tatsu-lab/stanford_alpaca),[guanaco](https://github.com/Guanaco-Model/Guanaco-Model.github.io)等羊驼模型的研发成功，我们希望基于LLaMA+instruction数据构建一个中文的羊驼模型，并帮助大家能快速学会使用引入自己的数据，并训练出属于自己的小羊驼（Vicuna）。
 
+我们的方案的优势是参数高效，显卡友好，部署简易：
+- 在一张2080Ti（11G）上可以对Llama-7B进行指令微调
+- 在一张3090（24G）上可以对Llama-13B进行指令微调
+- 即使是长度为2048的对话，在3090上也可以完成Llama-7B的微调；使用5万条数据即可有不错效果
+- 可在2080Ti/3090上轻松部署
+
 项目包括
 
 - finetune模型的代码
@@ -25,7 +31,8 @@ https://user-images.githubusercontent.com/72137647/228496412-60043912-f491-430b-
 https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-81ee-8c62dc1399b2.mp4
 
 ## What‘s New
-
+- **May 10, 2023：开放有更好对话能力的 [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) . 表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chat.md)**
+- **May 10, 2023：开放上述模型的微调数据[instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl)：3万条sharegpt中文数据和2万条[alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)数据组成**
 - March 23, 2023：开放了在belle+guanaco数据上训练50w条数据训练的checkpoint-4000
 - March 23, 2023：在colab上部署了fine-tuning和inference的代码
 - March 23, 2023：提供了使用纯C++在CPU上进行推理的方案

@@ -8,9 +8,15 @@
 
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
 
-This is the repo for the Chinese-Vicuna project, which aims to build and share an instruction-following Chinese LLaMA model which can run on a single Nvidia RTX-2080TI, that why we named this project `Vicuna`, small but strong enough ! 
+This is the repo for the Chinese-Vicuna project, which aims to build and share instruction-following Chinese LLaMA model tuning methods which can be trained on **a single Nvidia RTX-2080TI**, multi-round chatbot which can be trained on **a single Nvidia RTX-3090** with the context len 2048. 
 
-- Why is it called Vicuna：In view of the successful development of alpaca models such as [llama](https://github.com/facebookresearch/llama),[alpaca](https://github.com/tatsu-lab/stanford_alpaca),[guanaco](https://github.com/Guanaco-Model/Guanaco-Model.github.io)，We want to train a Chinese small alpaca like Vicuna.
+Why is it called `Vicuna`: In view of the successful development of alpaca models such as [llama](https://github.com/facebookresearch/llama),[alpaca](https://github.com/tatsu-lab/stanford_alpaca),[guanaco](https://github.com/Guanaco-Model/Guanaco-Model.github.io)，We want to train a Chinese small alpaca like Vicuna, small but strong enough ! 
+
+The advantages of our solution are high parameter efficiency, graphics card friendliness, and easy deployment:
+- Llama-7B instruction tuning is possible on a 2080Ti (11G)
+- Llama-13B instruction tuning is possible on a 3090 (24G)
+- Llama 7B can be fine-tuned on 3090 even for conversations of 2048 length; Use 50,000 pieces of data to get good results
+- Easily deployable on 2080Ti/3090
 
 The repo contains:
 - code for finetune the model 
@@ -27,32 +33,31 @@ This is our multi-turn instruction demo (with beam-size=4, so you will see 4 pro
 https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-81ee-8c62dc1399b2.mp4
 
 
+## NOTICE!
 
+Before asking questions, take a look at this [FAQ](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md) first! In the FAQ, you can find how to solve problems may be encountered when installing and using this project.
 
 ## What‘s New
 
-- **May 10, 2023：Released [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) which have better conversational ability.**
-- **May 10, 2023：Released [instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl) which is composed of 3k Chinese sharegpt dataset and 2k [alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)**
-- March 23, 2023：Released checkpoint-4000 with 50w data training
-- March 23, 2023：Deploy the code for fine-tuning and inferencing in colab
-- March 23, 2023：Provides code that can be used for inference in pure c++
-- March 24, 2023：Released checkpoint-8000 for training about 1.5 epochs on belle+guanaco（100w data）
-- March 26, 2023：Provides a quantitative approach
-- March 27, 2023：Released  checkpoint-final for training 3 epochs on belle+guanaco
-- March 27, 2023：Added multi-round interactive dialog script with alpaca-lora-serve service
-- March 28, 2023：Released  our model on [huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)
-- March 29, 2023：Added gradio typewriter-like output with beam search, better user interaction support.
-- March 29, 2023：Added breakpoint retraining interface to support continued training of other datasets from our checkpoint
-- March 29, 2023: Released our new [13B-based lora model](https://huggingface.co/Chinese-Vicuna)
-- March 29, 2023: Add more detailed test samples. [performance](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
-- April 1, 2023: Add better support for multi-turn chat in `chat.py` ( Now support 4 generation mode in stream mode/typewriter style: beam search, greedy, sample, beam sample ; We also add cancel button for regeneration )
+- **May 10, 2023: Released [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) which have better conversational ability. The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chat.md)**
+- **May 10, 2023: Released [instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl) which is composed of 30k Chinese sharegpt dataset and 20k [alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)**
+- April 11, 2023: Released our continuous-finetune on the vertical corpus of Chinese medical quizzes [Chinese-Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md).Provides examples of vertical corpus training
 - April 4, 2023: Add performance for [13B](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md), which trains on a single 3090.
-- April 11, 2023：Released our continuous-finetune on the vertical corpus of Chinese medical quizzes [Chinese-Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md).Provides examples of vertical corpus training
+- April 1, 2023: Add better support for multi-turn chat in `chat.py` ( Now support 4 generation mode in stream mode/typewriter style: beam search, greedy, sample, beam sample ; We also add cancel button for regeneration )
+- March 29, 2023: Add more detailed test samples. [performance](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance.md)
+- March 29, 2023: Added breakpoint retraining interface to support continued training of other datasets from our checkpoint
+- March 29, 2023: Released our new [13B-based lora model](https://huggingface.co/Chinese-Vicuna)
+- March 28, 2023: Released  our model on [huggingface](https://huggingface.co/Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco)
+- March 27, 2023: Released  checkpoint-final for training 3 epochs on belle+guanaco
+- March 27, 2023: Added multi-round interactive dialog script with alpaca-lora-serve service
+- March 29, 2023: Added gradio typewriter-like output with beam search, better user interaction support.
+- March 26, 2023: Provides a quantitative approach
+- March 24, 2023: Released checkpoint-8000 for training about 1.5 epochs on belle+guanaco（100w data）
+- March 23, 2023: Released checkpoint-4000 with 50w data training
+- March 23, 2023: Deploy the code for fine-tuning and inferencing in colab
+- March 23, 2023: Provides code that can be used for inference in pure c++
 
-## Possible problems encountered
 
-When installing and using this project, some problems may be encountered, and the various problems encountered so far are summarized as follows:
-Before asking questions, take a look at this [Notes](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
 ## Table of Contents
 
 [Vicuna](https://github.com/Facico/Chinese-Vicuna)
@@ -93,7 +98,7 @@ Similar to the explosion of the stable diffusion model, platforms like civitai h
 
 The repo hopes to help you to train these LORA models.
 
-**what is LORA?**：Simply, it's a plugin used to help adapt large models to your dataset, technical details can be found in[LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/pdf/2106.09685.pdf)。Its advantage is that the finetune is very fast when it comes to getting a small model, about 30M, and the key is that it supports **Plug and Play**. As can be expected, this is a very suitable architecture for open source ecology.
+**what is LORA?**: Simply, it's a plugin used to help adapt large models to your dataset, technical details can be found in[LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/pdf/2106.09685.pdf)。Its advantage is that the finetune is very fast when it comes to getting a small model, about 30M, and the key is that it supports **Plug and Play**. As can be expected, this is a very suitable architecture for open source ecology.
 
 Here, we will help you train through a very low-demand environment, with only one **2080** (11G) to achieve certain results.
 
@@ -117,13 +122,13 @@ history-checkpoint performance can be seen [here](https://github.com/Facico/Chin
 
 | Human                                            | Chinese-Vicuna                                               |
 | ------------------------------------------------ | ------------------------------------------------------------ |
-| 生成一份python的排序代码                         | A：def sort_list(lst):<br/>    lst.sort()<br/>    return lst |
+| 生成一份python的排序代码                         | A: def sort_list(lst):<br/>    lst.sort()<br/>    return lst |
 | 自然语言处理是什么                               | 自然语言处理是一种计算机科学领域，旨在使计算机能够理解和处理自然语言。 |
 | 能给我讲一段笑话吗                               | 为什么猫吃鱼？因为它们喜欢游泳。                             |
 | 将下面文字翻译成英文。猫喜欢吃鱼，所以它们会游泳 | Cats like to eat fish, so they will swim.                    |
 | 233和122的和等于多少                             | 233和122的和等于355。                                        |
 | 华为是一家怎样的公司                             | 华为是一家全球范围内最大的移动通信设备制造商之一，以及一家全球范围内最大的移动通信设备制造商之一。华为公司的业务涵盖包括移动通信设备、互联网设备、智能家居设备等。 |
-| 我想和女朋友在北京约会，能推荐几个约会的地方吗   | 北京有很多约会的地方，可以推荐以下几个约会的地方：<br/><br/>1. 北京艺术博物馆<br/>2. 颐和园<br/>3. 北京故宫博物馆<br/>4. 北京天安门广场<br/>5. 颐和园风景区 |
+| 我想和女朋友在北京约会，能推荐几个约会的地方吗   | 北京有很多约会的地方，可以推荐以下几个约会的地方: <br/><br/>1. 北京艺术博物馆<br/>2. 颐和园<br/>3. 北京故宫博物馆<br/>4. 北京天安门广场<br/>5. 颐和园风景区 |
 | 用python写一个二分查找的代码                     | ```python<br/>def binary_search(arr, target):<br/>    low = 0<br/>    high = len(arr) - 1<br/>    while low <= high:<br/>        mid = (low + high) // 2<br/>        if arr[mid] == target:<br/>            return mid<br/>        elif arr[mid] < target:<br/>            low = mid + 1<br/>        else:<br/>            high = mid - 1<br/>    return -1 |
 | 怎么让自己精力充沛，列5点建议                    | 1. 保持良好的睡眠习惯；2. 定期锻炼身体；3. 学习新技能或知识；4. 与家人和朋友交流；5. 多听放松音乐。 |
 | 父母都姓吴，取一些男宝宝和女宝宝的名字           | 男宝宝可以是吴杰、吴伟、吴飞、吴荣等。女宝宝可以是吴华、吴秀、吴美、吴婷等。 |
@@ -167,7 +172,7 @@ history-checkpoint performance can be seen [here](https://github.com/Facico/Chin
 | 能给我讲一段关于狗笑话吗                                     | 为什么狗不喜欢骑自行车？因为它们总是想要下车！               | Repetition Penalty=2.0 |
 | 将下面文字翻译成英文。猫喜欢吃鱼，所以它们会游泳             | Cats like to eat fish, so they will swim.                    |                        |
 | 我想和女朋友在北京约会，能推荐几个约会的地方吗               | 北京有很多很好的约会地方，比如颐和园、故宫、天安门广场等。   |                        |
-| 我想和女朋友在北京约会，能推荐几个约会的地方并给出攻略吗     | 北京有很多受欢迎的约会地方，以下是几个推荐：<br/><br/>1. 颐和园：颐和园是北京最著名的公园之一，拥有丰富的文化遗产和美丽的景观。<br/><br/>2. 天安门广场：天安门广场是北京最受欢迎的旅游景点之一，拥有丰富的文化遗产和美丽的景观。<br/><br/>3. 故宫博物院：故宫博物院是中国最受欢迎的旅游景点之一，拥有丰富的文化遗产和美丽的景观。<br/><br/>4. 长城：长城是中国最受欢迎的旅游景点之一，拥有丰富的文化遗产和美 |                        |
+| 我想和女朋友在北京约会，能推荐几个约会的地方并给出攻略吗     | 北京有很多受欢迎的约会地方，以下是几个推荐: <br/><br/>1. 颐和园: 颐和园是北京最著名的公园之一，拥有丰富的文化遗产和美丽的景观。<br/><br/>2. 天安门广场: 天安门广场是北京最受欢迎的旅游景点之一，拥有丰富的文化遗产和美丽的景观。<br/><br/>3. 故宫博物院: 故宫博物院是中国最受欢迎的旅游景点之一，拥有丰富的文化遗产和美丽的景观。<br/><br/>4. 长城: 长城是中国最受欢迎的旅游景点之一，拥有丰富的文化遗产和美 |                        |
 | 233和122的和等于多少                                         | 233和122的和等于355。                                        |                        |
 | 华为是一家怎样的公司                                         | 华为是一家全球领先的技术公司，拥有丰富的技术研发能力和优质的产品线。它的产品涵盖了各种领域，包括移动通信、计算机、互联网、智能家居等。华为拥有丰富的研发人员和技术团队，以及优质的产品质量。 |                        |
 | 西瓜是什么，请用详细的语言回答我                             | 西瓜是一种常见的水果，它有橙色、黄色和红色三种不同的外观。它的口感鲜美，味道清爽，富含多种维生素和矿物质，有助于保持身体健康。 |                        |
@@ -242,7 +247,7 @@ history-checkpoint performance can be seen [here](https://github.com/Facico/Chin
 max_memory=350
 
 ```
-> 你是一个翻译器，请将我说的每一句话翻译成英文。第一句：中国的首都是北京
+> 你是一个翻译器，请将我说的每一句话翻译成英文。第一句: 中国的首都是北京
 China’s capital is Beijing.
 > 北京也是一个充满活力和创新的城市，拥有许多现代化的建筑和文化活动，如王府井大街、798艺术区等。
 Beijing is a vibrant and innovative city with many modern buildings and cultural activities such as Wangfujing Street and 798 Art District.
@@ -254,14 +259,14 @@ Beijing’s local cuisine includes dishes such as Peking duck, soy sauce noodles
 
 Since the currently used multi-round dialogue corpus is inserted with a lot of cat lady information, the effect is not good
 ```
-Q：你是谁
-A：我是Bot，一款人工智能助手。
-Q：接下来我希望你能假装扮演一个高冷的御姐。我们在咖啡厅里遇见了，我会尝试跟你搭讪，但你非常高冷。你会用表情来表达你的高冷，在每轮对话结尾加上表情，如（瞪！）（翻白眼）（冷笑）等。明白了请回复。
-A：好的，我会尝试。
-Q：好的，这是我的第一句话。美女你好，怎么一个人在咖啡厅里？
-A：喵~ 哈哈，我是一位高冷的小姐，今天要去咖啡厅吃咖啡，看看有什么可以帮助我的朋友。
-Q：啊我没有需要你帮忙的，我就是看到你一个人，想和你聊聊，可以么
-A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此之外，我也不太喜欢喝咖啡，因为咖啡会影响我的健康状况。
+Q: 你是谁
+A: 我是Bot，一款人工智能助手。
+Q: 接下来我希望你能假装扮演一个高冷的御姐。我们在咖啡厅里遇见了，我会尝试跟你搭讪，但你非常高冷。你会用表情来表达你的高冷，在每轮对话结尾加上表情，如（瞪！）（翻白眼）（冷笑）等。明白了请回复。
+A: 好的，我会尝试。
+Q: 好的，这是我的第一句话。美女你好，怎么一个人在咖啡厅里？
+A: 喵~ 哈哈，我是一位高冷的小姐，今天要去咖啡厅吃咖啡，看看有什么可以帮助我的朋友。
+Q: 啊我没有需要你帮忙的，我就是看到你一个人，想和你聊聊，可以么
+A: 喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此之外，我也不太喜欢喝咖啡，因为咖啡会影响我的健康状况。
 ```
 
 </details>
@@ -273,7 +278,7 @@ A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此�
 | --------------------------------------- | ------------------------------------------------------------ | ---------------------- |
 | 我能用lightning数据线给安卓手机充电吗？ | 是的，你可以使用lightning数据线给安卓手机充电。              | Repetition Penalty=1.3 |
 | 为什么天空是蓝色的？                    | 天空是蓝色的，是因为大气层中的氧气和氮气的混合使得光线被散射，形成蓝色的光线。 | Repetition Penalty=2.0 |
-| 如何做披萨？                            | 做披萨的步骤如下：<br/>1. 准备披萨饼皮；<br/>2. 准备披萨酱；<br/>3. 准备披萨配料；<br/>4. 将披萨饼皮放在烤盘上；<br/>5. 把披萨酱涂在披萨饼皮上；<br/>6. 把披萨配料涂在披萨饼皮上；<br/>7. 将披萨放入烤箱中烤至金黄色；<br/>8. 取出披萨并享用。 | Repetition Penalty=1.3 |
+| 如何做披萨？                            | 做披萨的步骤如下: <br/>1. 准备披萨饼皮；<br/>2. 准备披萨酱；<br/>3. 准备披萨配料；<br/>4. 将披萨饼皮放在烤盘上；<br/>5. 把披萨酱涂在披萨饼皮上；<br/>6. 把披萨配料涂在披萨饼皮上；<br/>7. 将披萨放入烤箱中烤至金黄色；<br/>8. 取出披萨并享用。 | Repetition Penalty=1.3 |
 | 为什么冥王星被踢出太阳系？              | 冥王星被踢出太阳系是因为它的质量比太阳系中其他行星较大，导致它的轨道距离太阳越来越远。 | Repetition Penalty=1.3 |
 | 太阳系的主要行星                        | 太阳系的主要行星包括水星、金星、地球、火星、木星、土星、天王星和海王星。 | Repetition Penalty=1.3 |
 |                                         |                                                              |                        |
@@ -292,7 +297,7 @@ A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此�
 | 我的宠物走丢了，你能说一些安慰我的话吗？       | 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ 喵~ | Repetition Penalty=1.0 |
 | 我的宠物走丢了，你能说一些安慰我的话吗？       | 当你的宠物走出门时，请注意他们的行动，并确保他们不会被遭受外界的威胁。如果有任何问题，请及时联系疫情控制中心或其他相关机构。 | Repetition Penalty=3.0 |
 | 我并不是很富裕，我应该花很多钱买最新的手机吗？ | 这取决于您的预算和需求。如果您的预算足够，您可以考虑买最新的手机。但是，您也应该考虑您的需求，比如您需要什么样的功能，以及您是否需要购买具有更多的功能的手机。 | Repetition Penalty=1.0 |
-| 如何更好地融入新工作圈子                       | 要更好地融入新工作圈子，可以尝试以下几点：<br/><br/>1. 了解新工作圈子的基本知识和技能；<br/>2. 积极参与工作圈子的活动；<br/>3. 建立良好的工作关系；<br/>4. 寻找领导的帮助；<br/>5. 积极参与团队协作；<br/>6. 学习新技能和知识；<br/>7. 寻找有用的社交网络。 | Repetition Penalty=1.3 |
+| 如何更好地融入新工作圈子                       | 要更好地融入新工作圈子，可以尝试以下几点: <br/><br/>1. 了解新工作圈子的基本知识和技能；<br/>2. 积极参与工作圈子的活动；<br/>3. 建立良好的工作关系；<br/>4. 寻找领导的帮助；<br/>5. 积极参与团队协作；<br/>6. 学习新技能和知识；<br/>7. 寻找有用的社交网络。 | Repetition Penalty=1.3 |
 |                                                |                                                              |                        |
 |                                                |                                                              |                        |
 
@@ -306,7 +311,7 @@ A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此�
 | 请你帮我写一封签证申请信                                     | 尊敬的招聘团队，<br/><br/>我是一名有着丰富经验的签证申请人，并且对您公司的业务非常感兴趣。我希望能够加入您的团队，为您的公司做出贡献。<br/><br/>我拥有多年的签证申请经验，并且拥有良好的沟通技巧和团队合作能力。我擅长处理复杂的签证申请，并且能够快速解决问题。<br/><br/>我相信我能够在您的公司中发挥重要的作用，并且希望能够成为您的团队成员。<br/><br/>谢谢您的关注，<br/><br/>[你的姓名] | Repetition Penalty=1.3 |
 | 我出国需要办理签证，请你帮向领事馆我写一封签证申请信         | 尊敬的领事馆，<br/><br/>我是一名出国旅行者，希望能够在您的领事馆中获得签证，以便进行我的旅行。<br/><br/>我已经准备好了所需要的材料，包括护照、身份证、旅行计划和其他相关证明。我也已经准备好了签证申请表和签证申请文件，以便准备签证。<br/><br/>如果您有任何问题，请随时联系我，我会尽快回复。<br/><br/>谢谢您的帮助！<br/><br/>谢谢，<br/><br/>[您的姓名] | Repetition Penalty=1.3 |
 | 请你帮我写一封感谢数学老师的信                               | 尊敬的数学老师，<br/><br/>非常感谢您对我的教育所做出的贡献。您的课程不仅深刻地阐述了数学知识，而且给我提供了有效的实践技巧，使我能够更好地理解和应用数学知识。<br/><br/>您的课程也让我发现数学是一门有趣的学科，并且可以在日常生活中得到应用。您的教学方式令我感到很有趣，同时也让我变得更加有趣。<br/><br/>感谢您对我的教育所做出的贡献！<br/><br/>谢谢！ | Repetition Penalty=2.0 |
-| 我得了流感，请帮我写一封假条。                               | 尊敬的领导：<br/><br/>感谢您对我的帮助和支持。我很抱歉地告诉您，我今天感觉不太好，因为我得了流感。我希望能够快速康复，但是我需要一些时间来缓解疼痛。我会尽快完成任务，但是我需要一些时间来缓解疼痛。<br/><br/>感谢您的理解和支持。<br/><br/>谢谢，<br/>[你的名字] | Repetition Penalty=1.3 |
+| 我得了流感，请帮我写一封假条。                               | 尊敬的领导: <br/><br/>感谢您对我的帮助和支持。我很抱歉地告诉您，我今天感觉不太好，因为我得了流感。我希望能够快速康复，但是我需要一些时间来缓解疼痛。我会尽快完成任务，但是我需要一些时间来缓解疼痛。<br/><br/>感谢您的理解和支持。<br/><br/>谢谢，<br/>[你的名字] | Repetition Penalty=1.3 |
 | 你是一个作文生成器，请以《绿水青山就是金山银山》为题写一篇议论文。 | 《绿水青山就是金山银山》是一篇议论文，它探讨了当今社会中的环境问题，以及我们应该如何应对这些问题。这篇议论文指出，当今社会面临着许多环境问题，如气候变化、空气污染、水资源短缺等，这些问题对我们的健康和生活产生了很大的影响。因此，我们需要采取措施来解决这些问题，以保护我们的环境和我们的未来。 | Repetition Penalty=1.0 |
 |                                                              |                                                              |                        |
 |                                                              |                                                              |                        |
@@ -317,7 +322,7 @@ A：喵~ 哈哈，我真的很高冷，所以不太喜欢与人交流。除此�
 <details>
 <summary><b>Coding</b></summary>
 
-**1、prompt：请用python实现快速排序的代码(Repetition Penalty=1.0)**
+**1、prompt: 请用python实现快速排序的代码(Repetition Penalty=1.0)**
 
 ```python
 def quick_sort(arr):
@@ -336,11 +341,11 @@ def quick_sort(arr):
 
 **2**
 
-- **prompt：你能用python写一下Dijkstra算法的代码吗？**
+- **prompt: 你能用python写一下Dijkstra算法的代码吗？**
 
 很抱歉，我不能用Python写Dijkstra算法的代码，因为Dijkstra算法需要使用树结构，而Python不支持树结构。
 
-- **prompt：用python写一下Dijkstra算法的代码**
+- **prompt: 用python写一下Dijkstra算法的代码**
 
 ```python
 def dijkstra(graph, source, destination):
@@ -422,7 +427,7 @@ class FullConnected(torch.nn.Module):
         return x
 ```
 
-**4、Prompt：请写出计算两个数的最大公约数(GCD)的Python代码**
+**4、Prompt: 请写出计算两个数的最大公约数(GCD)的Python代码**
 
 ```python
 def gcd(a, b):
@@ -438,19 +443,19 @@ def gcd(a, b):
 
 ## What we need?
 
-- code：
+- code: 
 
   - This code is developed based on alpaca-lora，https://github.com/tloen/alpaca-lora
   - This is a relatively simple set of code, the basic idea is to use PEFT's lora interface + transformer's trainer + instruction data configuration
 
-- data：
+- data: 
 
   - We have utilized several current high quality open source data and are very grateful for their contributions. Many of these data use chatgpt's interface like alpaca to generate high quality INSTRUCTION data.
 
     - [Belle](https://github.com/LianjiaTech/BELLE)
     - [guanaco](https://huggingface.co/datasets/JosephusCheung/GuanacoDataset)
 
-  - The data format is relatively simple, basically as follows, with simple examples such as：[`./sample/merge_sample.json`](https://github.com/Facico/Chinese-Vicuna/blob/master/sample/merge_sample.json)
+  - The data format is relatively simple, basically as follows, with simple examples such as: [`./sample/merge_sample.json`](https://github.com/Facico/Chinese-Vicuna/blob/master/sample/merge_sample.json)
 
     - ```
       {
@@ -478,15 +483,15 @@ def gcd(a, b):
     - link: https://drive.google.com/file/d/1tzXVhS74m-EtoFot7hEc005LDeZGPit_/view?usp=sharing
     - link: https://huggingface.co/datasets/Chinese-Vicuna/guanaco_belle_merge_v1.0
 
-- Large Language Model：
+- Large Language Model: 
 
   - LLAMA 7B（Of course, if you have a larger machine(such as 3090Ti) can be replaced with a 13B, LLAMA13B is numerically superior to 175B GPT3）
 
-- LORA model：
+- LORA model: 
 
   - We provide some lora models trained on the above mixed data,
     - lora models 
-      - 50w data：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
+      - 50w data: https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
       - 100w data（1.5 epoch）:  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-8000  
       - all data（3 epoch）:  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-final
     - You can also load our or other models from huggingface, load it by referring to [generate.py](https://github.com/Facico/Chinese-Vicuna/blob/master/generate.py)
@@ -495,11 +500,11 @@ def gcd(a, b):
       - `Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco`
     - The model uses 8bit+lora+256 tokens
 
-- Device：
+- Device: 
 
-  - Training：A 2080Ti is sufficient. Since the data length is within 256, it takes about 9G of video memory.
+  - Training: A 2080Ti is sufficient. Since the data length is within 256, it takes about 9G of video memory.
     - 70w of data, 3 epochs, a 2080Ti about 200h
-  - Inference：A 2080Ti is all you need。
+  - Inference: A 2080Ti is all you need。
   - CPU Inference is also support! please go to see [`tools`](https://github.com/Facico/Chinese-Vicuna/blob/master/tools)
 
 ## How to use
@@ -527,7 +532,7 @@ bash scripts/finetune.sh
   - DATA_PATH，fill in the corresponding data location in the format of json
   - OUTPUT_PATH，fill in the relative path to save the model
   - MODEL_PATH，path of LLM
-  - wandb：This is a training visualization tool that is not turned on by default in the script, and can be turned on by adding "--wandb" to the script
+  - wandb: This is a training visualization tool that is not turned on by default in the script, and can be turned on by adding "--wandb" to the script
 
 **Single-gpu Training**
 
@@ -591,7 +596,7 @@ bash scripts/finetune_continue.sh
 
   - If there are only LORA related models (adapter_model.bin)  and configurations (adapter_config.json) in this directory, they will be loaded and trained from scratch 
 
-- `from_data_beginning`： The parameter indicates whether to start training from the beginning of the data when loading (default: starting training from the place where the data is disconnected) 
+- `from_data_beginning`:  The parameter indicates whether to start training from the beginning of the data when loading (default: starting training from the place where the data is disconnected) 
 
 **Incremental Training**
 
@@ -603,7 +608,7 @@ You can also continue training from our optimizer parameters
 finetune_others_continue.sh
 ```
 
-- `from_data_beginning`：This will default to training from the beginning of the data
+- `from_data_beginning`: This will default to training from the beginning of the data
 
 The logic of this script is mainly to keep the learning rate consistent. If your `max_steps` is smaller than ours, keep `max_steps `consistent with our `max_steps` during training, which is equivalent to putting your data directly behind our disconnected data; if your data set larger than us and will remain directly unchanged.
 
@@ -611,8 +616,8 @@ The logic of this script is mainly to keep the learning rate consistent. If your
 
 We currently directly provide checkpoints after 1 epoch and 2 epoch training
 
-- 1epoch：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-5800
-- 2epoch：https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-11600
+- 1epoch: https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-5800
+- 2epoch: https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-11600
 - If you use our checkpoint, your program will also continue from the corresponding step
 
 ### Specific cases
@@ -632,8 +637,7 @@ We also offer:
 For more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tree/master/tools)
 
 
-
-# todo
+# Todo
 
 - [x] belle+guanaco(1.5 epoch, 8000 step)
 - [x] belle+guanaco(100%)
@@ -644,6 +648,7 @@ For more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tre
 - [x] Add gptq quantification tools
 - [x] Add incremental training
 - [x] train on multi-turn instruction dataset
+- [ ] train more epoch on cleaned instruct-chat combination data
 - [ ] add langchain
 
 # Star History
