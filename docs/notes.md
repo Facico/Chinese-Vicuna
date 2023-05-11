@@ -153,11 +153,15 @@ pip uninstall transformers==4.28.1
 
   - 但我们版本对应的transformers中`tokenizer.eos_token_id`和`tokenizer.bos_token_id`这里，它调用的是sentencepiece的接口求的，这个接口导入的是tokenizer.model这个文件，和tokenizer_config写的不对应（这里在最新版的transformers逻辑中可能改了，但是用我们固定的transformers和）。可以参考这个[issue回复](https://github.com/Facico/Chinese-Vicuna/issues/59#issuecomment-1507135087)
 
+**你也可以把模型改成https://huggingface.co/yahma/llama-7b-hf**
+- 这是一个修复了llama的eos的问题的模型
+
 相关的issue：
 
 - https://github.com/Facico/Chinese-Vicuna/issues/55
 - https://github.com/Facico/Chinese-Vicuna/issues/59
 - https://github.com/Facico/Chinese-Vicuna/issues/71
+- https://github.com/Facico/Chinese-Vicuna/issues/140
 
 ### 3、peft版本的问题
 
