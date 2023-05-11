@@ -3,8 +3,8 @@ CUDAs=(${TOT_CUDA//,/ })
 CUDA_NUM=${#CUDAs[@]}
 PORT="11451"
 
-DATA_PATH="sample/instruct/data_sample.jsonl" #"../dataset/instruction/guanaco_non_chat_mini_52K-utf8.json" #"./sample/merge_sample.json"
-OUTPUT_PATH="lora-Vicuna"
+DATA_PATH="sample/instruct/data_sample.jsonl" 
+OUTPUT_PATH="outs"
 MODEL_PATH="decapoda-research/llama-7b-hf"
 TEST_SIZE=1
 use_deepspeed=1
