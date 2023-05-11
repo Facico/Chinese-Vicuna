@@ -4,7 +4,7 @@
 [![discord join](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/4FnhmeNHku)
 
  
- | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) |[注意事项/NOTEs](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
+ | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) |[注意事项/NOTEs(使用前务必看一看！)](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
 
 ![camel](https://github.com/Facico/Chinese-Vicuna/blob/master/img/camel.png)
 
