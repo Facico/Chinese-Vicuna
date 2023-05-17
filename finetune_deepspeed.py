@@ -266,7 +266,7 @@ trainer = transformers.Trainer(
         ddp_find_unused_parameters=False if ddp else None,
         report_to="wandb" if args.wandb else [],
         ignore_data_skip=args.ignore_data_skip,
-        deepspeed="config-sample/zero_config.json" if args.deepspeed else None,
+        deepspeed="sample/zero_config.json" if args.deepspeed else None,
     ),
     data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False)
 )

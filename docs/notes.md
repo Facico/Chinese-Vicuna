@@ -16,7 +16,7 @@
   - https://github.com/Facico/Chinese-Vicuna/issues/39
   - https://github.com/Facico/Chinese-Vicuna/issues/32
 
-- 3、在推理的时候可能会产生乱码。**可以在我们推理脚本中，直接将`device`改成cpu试试能不能产生正常的结果。**或者使用下面的代码进行测试，假设这个代码叫simple_test.py，使用CUDA_VISIBLE_DEVICES=0 python simple_test.py来运行测试
+- 3、在推理的时候可能会产生乱码。**可以在我们推理脚本中，直接将`device`改成cpu试试能不能产生正常的结果。** 或者使用下面的代码进行测试，假设这个代码叫simple_test.py，使用CUDA_VISIBLE_DEVICES=0 python simple_test.py来运行测试
 
   - ```python
     import sys
@@ -30,8 +30,8 @@
     
     model = LlamaForCausalLM.from_pretrained(
         BASE_MODEL,
-        load_in_8bit=True,
-        torch_dtype=torch.float16,
+        load_in_8bit=True, #改成cpu删除此行
+        torch_dtype=torch.float16, #改成cpu删除此行
         device_map="auto",  #{"": "cpu"}
     )
     model.eval()
@@ -48,7 +48,7 @@
     model = PeftModel.from_pretrained(
             model,
             "./lora-Vicuna/checkpoint-final",
-            torch_dtype=torch.float16,
+            torch_dtype=torch.float16, #改成cpu删除此行
             device_map={'': 0} #{"": "cpu"}
         )
     
@@ -153,11 +153,15 @@ pip uninstall transformers==4.28.1
 
   - 但我们版本对应的transformers中`tokenizer.eos_token_id`和`tokenizer.bos_token_id`这里，它调用的是sentencepiece的接口求的，这个接口导入的是tokenizer.model这个文件，和tokenizer_config写的不对应（这里在最新版的transformers逻辑中可能改了，但是用我们固定的transformers和）。可以参考这个[issue回复](https://github.com/Facico/Chinese-Vicuna/issues/59#issuecomment-1507135087)
 
+**你也可以把模型改成https://huggingface.co/yahma/llama-7b-hf**
+- 这是一个修复了llama的eos的问题的模型
+
 相关的issue：
 
 - https://github.com/Facico/Chinese-Vicuna/issues/55
 - https://github.com/Facico/Chinese-Vicuna/issues/59
 - https://github.com/Facico/Chinese-Vicuna/issues/71
+- https://github.com/Facico/Chinese-Vicuna/issues/140
 
 ### 3、peft版本的问题
 
