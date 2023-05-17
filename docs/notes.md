@@ -16,7 +16,7 @@
   - https://github.com/Facico/Chinese-Vicuna/issues/39
   - https://github.com/Facico/Chinese-Vicuna/issues/32
 
-- 3、在推理的时候可能会产生乱码。**可以在我们推理脚本中，直接将`device`改成cpu试试能不能产生正常的结果。**或者使用下面的代码进行测试，假设这个代码叫simple_test.py，使用CUDA_VISIBLE_DEVICES=0 python simple_test.py来运行测试
+- 3、在推理的时候可能会产生乱码。**可以在我们推理脚本中，直接将`device`改成cpu试试能不能产生正常的结果。** 或者使用下面的代码进行测试，假设这个代码叫simple_test.py，使用CUDA_VISIBLE_DEVICES=0 python simple_test.py来运行测试
 
   - ```python
     import sys
@@ -30,8 +30,8 @@
     
     model = LlamaForCausalLM.from_pretrained(
         BASE_MODEL,
-        load_in_8bit=True,
-        torch_dtype=torch.float16,
+        load_in_8bit=True, #改成cpu删除此行
+        torch_dtype=torch.float16, #改成cpu删除此行
         device_map="auto",  #{"": "cpu"}
     )
     model.eval()
@@ -48,7 +48,7 @@
     model = PeftModel.from_pretrained(
             model,
             "./lora-Vicuna/checkpoint-final",
-            torch_dtype=torch.float16,
+            torch_dtype=torch.float16, #改成cpu删除此行
             device_map={'': 0} #{"": "cpu"}
         )
     
