@@ -13,9 +13,10 @@ This is the repo for the Chinese-Vicuna project, which aims to build and share i
 Why is it called `Vicuna`: In view of the successful development of alpaca models such as [llama](https://github.com/facebookresearch/llama),[alpaca](https://github.com/tatsu-lab/stanford_alpaca),[guanaco](https://github.com/Guanaco-Model/Guanaco-Model.github.io)，We want to train a Chinese small alpaca like Vicuna, small but strong enough ! 
 
 The advantages of our solution are high parameter efficiency, graphics card friendliness, and easy deployment:
-- Llama-7B instruction tuning is possible on a 2080Ti (11G)
-- Llama-13B instruction tuning is possible on a 3090 (24G)
-- Llama 7B can be fine-tuned on 3090 even for conversations of 2048 length; Use 50,000 pieces of data to get good results
+- Llama-7B instruction tuning is possible on a 2080Ti (11G) ([7b-instruct](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco))
+- Llama-13B instruction tuning is possible on a 3090 (24G) ([13b-instruct](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-13b-belle-and-guanaco))
+- Llama 7B can be fine-tuned on 3090 even for conversations of 2048 length; Use 50,000 pieces of data to get good results ([chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1))
+- Llama 7B fine-tuning example on [medical](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-continue-finetune-7epoch-cMedQA2) and [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) domains
 - Easily deployable on 2080Ti/3090
 
 The repo contains:
@@ -39,8 +40,9 @@ Before asking questions, take a look at this [FAQ](https://github.com/Facico/Chi
 
 ## What‘s New
 
-- **May 10, 2023: Released [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) which have better conversational ability. The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chat.md)**
-- **May 10, 2023: Released [instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl) which is composed of 30k Chinese sharegpt dataset and 20k [alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)**
+- **May 17, 2023: Llama 7B fine-tuning example on [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) domains, The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)**
+- May 10, 2023: Released [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) which have better conversational ability. The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1.md)
+- May 10, 2023: Released [instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl) which is composed of 30k Chinese sharegpt dataset and 20k [alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)
 - April 11, 2023: Released our continuous-finetune on the vertical corpus of Chinese medical quizzes [Chinese-Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md).Provides examples of vertical corpus training
 - April 4, 2023: Add performance for [13B](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-13B.md), which trains on a single 3090.
 - April 1, 2023: Add better support for multi-turn chat in `chat.py` ( Now support 4 generation mode in stream mode/typewriter style: beam search, greedy, sample, beam sample ; We also add cancel button for regeneration )
@@ -648,7 +650,8 @@ For more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tre
 - [x] Add gptq quantification tools
 - [x] Add incremental training
 - [x] train on multi-turn instruction dataset
-- [ ] train more epoch on cleaned instruct-chat combination data
+- [x] train more epoch on cleaned instruct-chat combination data
+- [x] train on domain-specific datas (medical, legal)
 - [ ] add langchain
 
 # Star History

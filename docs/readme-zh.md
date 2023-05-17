@@ -11,9 +11,10 @@
 鉴于[llama](https://github.com/facebookresearch/llama),[alpaca](https://github.com/tatsu-lab/stanford_alpaca),[guanaco](https://github.com/Guanaco-Model/Guanaco-Model.github.io)等羊驼模型的研发成功，我们希望基于LLaMA+instruction数据构建一个中文的羊驼模型，并帮助大家能快速学会使用引入自己的数据，并训练出属于自己的小羊驼（Vicuna）。
 
 我们的方案的优势是参数高效，显卡友好，部署简易：
-- 在一张2080Ti（11G）上可以对Llama-7B进行指令微调
-- 在一张3090（24G）上可以对Llama-13B进行指令微调
-- 即使是长度为2048的对话，在3090上也可以完成Llama-7B的微调；使用5万条数据即可有不错效果
+- 在一张2080Ti（11G）上可以对Llama-7B进行指令微调 ([7b-instruct](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco))
+- 在一张3090（24G）上可以对Llama-13B进行指令微调 ([13b-instruct](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-13b-belle-and-guanaco))
+- 即使是长度为2048的对话，在3090上也可以完成Llama-7B的微调；使用5万条数据即可有不错效果 ([chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1))
+- 领域微调的例子：医学问答 和 法律问答。([medical](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-continue-finetune-7epoch-cMedQA2) and [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora))
 - 可在2080Ti/3090上轻松部署
 
 项目包括
@@ -35,8 +36,9 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 在提问题之前，请务必先看看这个[FAQ](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)，这里总结了大部分常见的问题。
 
 ## What‘s New
-- **May 10, 2023：开放有更好对话能力的 [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) . 表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chat.md)**
-- **May 10, 2023：开放上述模型的微调数据[instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl)：3万条sharegpt中文数据和2万条[alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)数据组成**
+- **May 17, 2023: 开放法律问答模型 [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) ，表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)**
+- May 10, 2023：开放有更好对话能力的 [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) . 表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1.md)
+- May 10, 2023：开放上述模型的微调数据[instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl)：3万条sharegpt中文数据和2万条[alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)数据组成
 - March 23, 2023：开放了在belle+guanaco数据上训练50w条数据训练的checkpoint-4000
 - March 23, 2023：在colab上部署了fine-tuning和inference的代码
 - March 23, 2023：提供了使用纯C++在CPU上进行推理的方案
@@ -637,8 +639,16 @@ finetune_others_continue.sh
 - [x] 增加llama的c++推理
 - [x] 增加gptq模型量化方法
 - [x] 增加增量训练
+- [x] 增加多轮对话&指令微调
+- [x] 增加领域微调例子(医学，法学)
 - [ ] 增加langchain
-- [ ] 在多轮instruction数据上训练
+
+
+## 免责声明
+
+此模型是基于大量语料库和算法模型进行训练的，并且在训练过程中可能存在偏差、错误和不完整的信息。因此，本项目提供的模型仅供参考和研究使用，作为领域数据微调的demo，并不能保证其准确性和可靠性，不能用于实际应用或决策。本项目不对使用预训练模型所产生的结果承担任何责任，也不对因使用预训练模型所产生的任何损失承担责任。使用者在使用预训练模型时应自行承担风险并进行自我验证。
+
+
 
 # Citation
 
