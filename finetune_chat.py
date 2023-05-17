@@ -31,6 +31,7 @@ parser.add_argument("--prompt_type", type=str, default="chat")
 parser.add_argument("--data_path", type=str, default="merge.json")
 parser.add_argument("--output_path", type=str, default="lora-Vicuna")
 parser.add_argument("--model_path", type=str, default="decapoda-research/llama-7b-hf")
+parser.add_argument("--num_epoch", type=int, default=3)
 parser.add_argument("--micro_batch", type=int, default=4)
 parser.add_argument("--total_batch", type=int, default=128)
 parser.add_argument("--log_steps", type=int, default=100)
@@ -47,7 +48,7 @@ MICRO_BATCH_SIZE = args.micro_batch  # this could actually be 5 but i like power
 BATCH_SIZE = args.total_batch
 MAX_STEPS = None
 GRADIENT_ACCUMULATION_STEPS = BATCH_SIZE // MICRO_BATCH_SIZE
-EPOCHS = 3 
+EPOCHS = args.num_epoch 
 LEARNING_RATE = 3e-4  # the Karpathy constant
 CUTOFF_LEN = 2048  
 LORA_R = 8
@@ -101,6 +102,7 @@ logger.info(f'>>> processing data from {DATA_PATH}')
 logger.info(f'>>> using {args}')
 
 train_tokenizer = LlamaTokenizer.from_pretrained(args.model_path, add_eos_token=True)
+assert train_tokenizer.eos_token_id == 2, "Tokenizer eos is wrong!!!"
 # unk. we want this to be different from the eos token
 train_tokenizer.pad_token_id = 0  
 # cannot use eos in generation!
@@ -120,7 +122,6 @@ for example in examples:
     logger.info(f'>>> using prompt {args.prompt_type}, prompt example:\n { train_tokenizer.decode(example["input_ids"]) }')
     logger.info(f'>>> tokenizer labels: { train_tokenizer.decode([ 0 if l==-100 else l for l in example["labels"]])}')
     logger.info(f'>>> tokenizer example: { example["input_ids"][:10] }...{ example["input_ids"][-10:]}')
-
 # 2. load model and checkpoints
 logger.info(f'>>> load model from {args.model_path}')
 model = LlamaForCausalLM.from_pretrained(
@@ -154,7 +155,7 @@ if args.resume_from_checkpoint:
     if os.path.exists(checkpoint_name):
         logger.info(f'>>> load lora from {checkpoint_name}')
         adapters_weights = torch.load(checkpoint_name)
-        model = set_peft_model_state_dict(model, adapters_weights)
+        set_peft_model_state_dict(model, adapters_weights)
     else:
         raise Exception(f"Checkpoint {checkpoint_name} not found with resume_from_checkpoint=True!")
 
