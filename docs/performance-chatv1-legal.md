@@ -12,6 +12,7 @@ legal的数据我们使用 [Chatgpt关于JEC-QA中国法考数据集的解答](h
 
 我们按[chat](https://github.com/Facico/Chinese-Vicuna/blob/master/sample/chat/data_sample.jsonl)格式格式化数据，基于[chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1)，使用[continue-training](https://github.com/Facico/Chinese-Vicuna/blob/master/scripts/finetune_chat_continue.sh) 继续训练将近6 epoch；经测试不仅提高了法律问答能力，还能够保留一定的通用问答能力。也可以直接从Llama的基础上直接微调，法律问答能力接近，但不会具备通用问答能力。模型已经上传至[huggingface](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora)
 
+NOTE: 请注意这个模型基于`chatv1`训练，使用的是`chat.py`中的chat prompt。
 
 ## legal qa
 
