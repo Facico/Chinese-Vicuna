@@ -14,6 +14,7 @@ import torch.nn as nn
 import bitsandbytes as bnb
 from datasets import load_dataset, Dataset
 import transformers
+from huggingface_hub import snapshot_download
 import argparse
 import warnings
 from tqdm import tqdm
@@ -40,6 +41,7 @@ parser.add_argument("--save_steps", type=int, default=200)
 parser.add_argument("--warmup_ratio", type=float, default=0.05)
 parser.add_argument("--test_size", type=int, default=200)
 parser.add_argument("--resume_from_checkpoint", type=str, default=None)
+parser.add_argument("--lora_remote_checkpoint", type=str, default=None)
 parser.add_argument("--ignore_data_skip", type=bool, default=False)
 args = parser.parse_args()
 if not args.wandb:
@@ -184,6 +186,8 @@ now_max_steps = max((len(data["train"]) - VAL_SET_SIZE) // BATCH_SIZE * EPOCHS, 
 if args.resume_from_checkpoint:
     # the trainer will ignore the state max_steps and caculate max_steps based on epochs,
     # so we mannally set the args.max_step to override it. 
+    if args.lora_remote_checkpoint is not None:
+        snapshot_download(repo_id=args.lora_remote_checkpoint, allow_patterns=["*.pt", "*.bin", "*.json"], local_dir=args.resume_from_checkpoint)
     train_state_path = os.path.join(args.resume_from_checkpoint, "trainer_state.json")
     if os.path.exists(train_state_path):
         import json

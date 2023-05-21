@@ -2,6 +2,7 @@ DATA_PATH="legal_2048.jsonl"
 lora_checkpoint="Chinese-Vicuna/outs/7b-sharegpt-4090-2/train_4800_args"
 MODEL_PATH="/model/yahma_llama_7b"
 OUTPUT_PATH="outs/7b-legal-from-chatv1-epoch3"
+lora_remote_checkpoint="Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1"
 
 python finetune_chat.py \
 --data_path $DATA_PATH \
@@ -16,4 +17,5 @@ python finetune_chat.py \
 --test_size 0 \
 --prompt_type "chat" \
 --resume_from_checkpoint $lora_checkpoint \
+--lora_remote_checkpoint $lora_remote_checkpoint \
 --ignore_data_skip True

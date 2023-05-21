@@ -8,6 +8,7 @@ from datasets import load_dataset
 import transformers
 import argparse
 import warnings
+from huggingface_hub import snapshot_download
 
 assert (
     "LlamaTokenizer" in transformers._import_structure["models.llama"]
@@ -39,6 +40,7 @@ parser.add_argument("--save_steps", type=int, default=200)
 parser.add_argument("--test_size", type=int, default=200)
 parser.add_argument("--resume_from_checkpoint", type=str, default=None)
 parser.add_argument("--ignore_data_skip", type=str, default="False")
+parser.add_argument("--lora_remote_checkpoint", type=str, default=None)
 
 parser.add_argument("--local_rank", type=int, default=-1)
 parser.add_argument("--deepspeed", action="store_true", default=False)
@@ -102,10 +104,12 @@ data = load_dataset("json", data_files=DATA_PATH)
 
 now_max_steps = max((len(data["train"]) - VAL_SET_SIZE) // BATCH_SIZE * EPOCHS, EPOCHS)
 if args.resume_from_checkpoint:
-# Check the available weights and load them
+    if args.lora_remote_checkpoint is not None:
+        snapshot_download(repo_id=args.lora_remote_checkpoint, allow_patterns=["*.pt", "*.bin", "*.json"], local_dir=args.resume_from_checkpoint)
+    # Check the available weights and load them
     checkpoint_name = os.path.join(
         args.resume_from_checkpoint, "pytorch_model.bin"
-)  # Full checkpoint
+    )  # Full checkpoint
     if not os.path.exists(checkpoint_name):
         pytorch_bin_path = checkpoint_name
         checkpoint_name = os.path.join(
