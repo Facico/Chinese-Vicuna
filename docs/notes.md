@@ -102,7 +102,7 @@ llama的模型文件有两个下载渠道，他们官方(META AI)的（[agi.gpt4
 pip uninstall transformers
 pip install git+https://github.com/huggingface/transformers@ff20f9cf3615a8638023bc82925573cb9d0f3560
 或者
-pip uninstall transformers==4.28.1
+pip install transformers==4.28.1
 ```
 
 
