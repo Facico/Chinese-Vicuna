@@ -31,7 +31,7 @@ class instruct_prompt(prompt):
         else:
         # multi turn format {'history':[..], 'input':[..]}
             user_prompt = "\n".join(["User:" + i['input']+"\n"+"Assistant:" + i['output'] for i in data_point['history']]) + "\nUser:" + data_point['input'] + "\nAssistant:"
-            user_prompt = user_prompt[-maxlen:]
+            user_prompt = user_prompt[-self.max_len:]
         user_prompt=self.prompt.format_map({'instruction':user_prompt})
         input_ids = self.tokenizer(user_prompt)["input_ids"]
         return input_ids
