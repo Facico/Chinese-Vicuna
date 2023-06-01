@@ -102,7 +102,7 @@ llama的模型文件有两个下载渠道，他们官方(META AI)的（[agi.gpt4
 pip uninstall transformers
 pip install git+https://github.com/huggingface/transformers@ff20f9cf3615a8638023bc82925573cb9d0f3560
 或者
-pip install transformers==4.28.1
+pip install transformers==4.28.1 （4.28.0.dev以上的版本不能用decapoda_research的模型）
 ```
 
 
@@ -121,28 +121,12 @@ pip install transformers==4.28.1
 
 - **！！！eos的id是2不是0，这个很重要，使用前自己测一下！！！**
 
-  ```python
-  from transformers import LlamaTokenizer, LlamaForCausalLM
-  
-  tokenizer = LlamaTokenizer.from_pretrained("decapoda-research/llama-7b-hf", add_eos_token=False, add_bos_token=True)
-  
-  print(tokenizer.eos_token_id)
-  print(tokenizer.bos_token_id)
-  print(tokenizer._convert_token_to_id(tokenizer.bos_token))
-  print(tokenizer._convert_token_to_id('<s>'))
-  print(tokenizer._convert_token_to_id('</s>'))
-  ```
+  使用`python test_tokenizer.py`测试一下
 
-  我们的结果是
-
-  ```
-  2
-  1
-  0
-  1
-  2
-  ```
-
+  - 造成这个问题的原因：
+    - 老版本的transformers（我们一开始用的4.28.0.dev）加载的是tokenizer.model这个文件，decapoda中这个文件里面eos=2，bos=1.但是它的config里面eos=1，bos=0,因此eos不会错误加载（llama的预训练模型eos=2）
+    - 新版的transformers加载的是config，yahma的模型里config是正确的，tokenizer.model也是正确的，因此没有问题。
+    - 但是用新版本的transformers加载decapoda就会加载出错误的eos
   **下面看不懂可以忽略，保证eos_token_id=2就好了**
 
   - 虽然这里有个奇怪的地方就是tokenizer_config.json中写的都是空，我们的tokenizer_config.json如下
@@ -287,7 +271,7 @@ colab数据无法下载？colab也需要翻墙，可以使用我们提供的百�
 
 **discord**：https://discord.gg/4FnhmeNHku
 
-有些问题通过邮件交流起来比较繁琐，可以在群里交流。由于群建立其实没多久，同时也没有对该项目进行任何推广、拉赞助等操作，群里的人可能不是很多。
+有些问题通过邮件交流起来比较繁琐，可以在群里交流。但是由于我们不是主要做这个项目的，还有很多其他事情，问题不会及时回答，这个时候建议里问问群里其他人，或者仔细把项目看一看（有问题直接在项目里搜索一般都能找到）
 
 ### 你们项目有啥特点？
 
@@ -296,6 +280,7 @@ llama+中文+**低资源**+垂料训练的方案
 我们最初的7B是在3张2080Ti（11G）跑了将近70个小时，用数据并行的方式跑的（1张2080Ti也行，会慢很多）
 
 我们的配置是：lora+8bit+256（长度）（256的时候mirco batch size是4）
+- 现在能支持4bit微调+推理（7B的4bit版本大概4-5G左右），2080能微调13B的4bit版本
 
 目前其他大多数项目都是不开8bit+全量微调+2048，然后使用很多A100（由于没有资源，玩不起）
 

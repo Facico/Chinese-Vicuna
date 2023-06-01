@@ -47,6 +47,6 @@ decode_text:  你好很高兴能见到你！
 老版本transformers的问题：代码默认加载tokenizer.model
 新版本transformers的修改：新版本默认加载config
 
-decapoda-research：config的bos=2，eos=1（×），tokenizer.model是正确的
+decapoda-research：config的bos=0，eos=1（×），tokenizer.model是正确的
 yahma：config的bos=1，eos=2，tokenizer.model是正确的
 """
