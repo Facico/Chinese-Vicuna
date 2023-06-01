@@ -56,6 +56,7 @@ CUTOFF_LEN = 2048
 LORA_R = 8
 LORA_ALPHA = 16
 LORA_DROPOUT = 0.05
+USE_8bit = True
 VAL_SET_SIZE = args.test_size  # 2000
 TARGET_MODULES = [
     "q_proj",
@@ -126,13 +127,17 @@ for example in examples:
     logger.info(f'>>> tokenizer example: { example["input_ids"][:10] }...{ example["input_ids"][-10:]}')
 # 2. load model and checkpoints
 logger.info(f'>>> load model from {args.model_path}')
+
+if USE_8bit is True:
+    assert bnb.__version__ >= '0.37.2', "Please downgrade bitsandbytes's version, for example: pip install bitsandbytes==0.37.2"
 model = LlamaForCausalLM.from_pretrained(
     args.model_path,
-    load_in_8bit=True,
+    load_in_8bit=USE_8bit,
     device_map=device_map,
     torch_dtype=torch.float16,
 )
-model = prepare_model_for_int8_training(model)
+if USE_8bit is True:
+    model = prepare_model_for_int8_training(model)
 config = LoraConfig(
     r=LORA_R,
     lora_alpha=LORA_ALPHA,

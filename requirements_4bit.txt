@@ -1,0 +1,23 @@
+accelerate @ git+https://github.com/huggingface/accelerate.git@f9b2e6769b1279b11335d2b87801fa1ca81bb056
+appdirs==1.4.4
+bitsandbytes==0.39.0
+datasets==2.8.0
+deepspeed==0.8.3
+evaluate==0.4.0
+fairscale==0.4.13
+torch==1.13.1
+torchvision==0.14.1
+gradio==3.20.0
+huggingface-hub==0.13.3
+loralib==0.1.1
+nvitop==1.0.0
+peft @ git+https://github.com/huggingface/peft.git@3714aa2fff158fdfa637b2b65952580801d890b2
+sentencepiece==0.1.96
+tensorboard==2.12.0
+texttable==1.6.7
+tokenizers==0.13.2
+tqdm==4.65.0
+transformers @ git+https://github.com/huggingface/transformers@e45e756d22206ca8fa9fb057c8c3d8fa79bf81c6
+trlx @ git+https://github.com/CarperAI/trlx.git@b91da7b03d8e9fa0c0d6dce10a8f2611aca3013f
+wandb==0.13.10
+triton==2.0.0
