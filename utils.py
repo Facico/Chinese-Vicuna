@@ -16,6 +16,7 @@ from transformers.generation.utils import (
 )
 import warnings
 from peft import PeftModel, PeftModelForCausalLM, LoraConfig
+import peft
 import torch.distributed as dist
 from torch import nn
 import copy
@@ -739,9 +740,40 @@ class StreamLlamaForCausalLM(LlamaForCausalLM, StreamGenerationMixin):
 
 class StreamPeftGenerationMixin(PeftModelForCausalLM, StreamGenerationMixin):
 
-    # default it call `model = MODEL_TYPE_TO_PEFT_MODEL_MAPPING[config.task_type](model, config)`, not cls!! so inherent PeftModelForCausalLM is no sense
+    # default it call `model = MODEL_TYPE_TO_PEFT_MODEL_MAPPING[config.task_type](model, config)`, not cls!! so inherent PeftModelForCausalLM is non sense
     @classmethod
-    def from_pretrained(cls, model, model_id, **kwargs):
+    def from_pretrained(cls, model, model_id, adapter_name="default", is_trainable=False,  **kwargs):
+        # work in peft==0.3.0
+        if peft.__version__ >= '0.3.0' and peft.__version__ != '0.3.0.dev0':
+            # load the config
+            from peft.utils import PromptLearningConfig
+            config = LoraConfig.from_pretrained(model_id)
+
+            if (getattr(model, "hf_device_map", None) is not None) and len(
+                set(model.hf_device_map.values()).intersection({"cpu", "disk"})
+            ) > 0:
+                remove_hook_from_submodules(model)
+
+            if isinstance(config, PromptLearningConfig) and is_trainable:
+                raise ValueError("Cannot set a prompt learning adapter to trainable when loading pretrained adapter.")
+            else:
+                config.inference_mode = not is_trainable
+
+            # here is the hack
+            model = cls(model, config, adapter_name)
+            model.load_adapter(model_id, adapter_name, **kwargs)
+            # NOTICE
+            model.base_model_prepare_inputs_for_generation = model.base_model.prepare_inputs_for_generation
+            model._reorder_cache = model.base_model._reorder_cache
+            return model
+        else:
+            return cls.from_pretrained_old_peft_version(model, model_id, **kwargs)
+
+
+    @classmethod
+    def from_pretrained_old_peft_version(cls, model, model_id, **kwargs):
+        # work well in peft@e536616888d51b453ed354a6f1e243fecb02ea08
+
         # load the config
         config = LoraConfig.from_pretrained(model_id)
 
@@ -794,4 +826,3 @@ class StreamPeftGenerationMixin(PeftModelForCausalLM, StreamGenerationMixin):
                 remove_hook_from_submodules(model.prompt_encoder)
                 add_hook_to_module(model.base_model, hook)
         return model
-
