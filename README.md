@@ -40,6 +40,7 @@ Before asking questions, take a look at this [FAQ](https://github.com/Facico/Chi
 
 ## What‘s New
 
+- June, 1, 2023: support for 4bit training + inference, providing a multi-GPU inference interface (the environment is different from the original 8bit! Also provides test_tokenizers.py to check EOS token)
 - **May 17, 2023: Llama 7B fine-tuning example on [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) domains, The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)**
 - May 10, 2023: Released [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) which have better conversational ability. The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1.md)
 - May 10, 2023: Released [instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl) which is composed of 30k Chinese sharegpt dataset and 20k [alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)
@@ -492,21 +493,18 @@ def gcd(a, b):
 - LORA model: 
 
   - We provide some lora models trained on the above mixed data,
-    - lora models 
-      - 50w data: https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
-      - 100w data（1.5 epoch）:  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-8000  
-      - all data（3 epoch）:  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-final
     - You can also load our or other models from huggingface, load it by referring to [generate.py](https://github.com/Facico/Chinese-Vicuna/blob/master/generate.py)
-      - `Facico/Chinese-Vicuna-lora-7b-0.75epoch-belle-and-guanaco`
-      - `Facico/Chinese-Vicuna-lora-7b-1.5epoch-belle-and-guanaco`
-      - `Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco`
+      - `Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco`
+      - `Chinese-Vicuna/Chinese-Vicuna-lora-13b-belle-and-guanaco`
     - The model uses 8bit+lora+256 tokens
+    - For more LORA model, please see: https://huggingface.co/Chinese-Vicuna
 
 - Device: 
 
   - Training: A 2080Ti is sufficient. Since the data length is within 256, it takes about 9G of video memory.
     - 70w of data, 3 epochs, a 2080Ti about 200h
-  - Inference: A 2080Ti is all you need。
+    - 13B need about 18G(the cutoff_len can be set to 2048 in 3090Ti/4090Ti)
+  - Inference: A 2080Ti is all you need(7B), multiple GPU inference support 。
   - CPU Inference is also support! please go to see [`tools`](https://github.com/Facico/Chinese-Vicuna/blob/master/tools)
 
 ## How to use
@@ -522,7 +520,17 @@ Local python environment is 3.8, torch is 1.13.1, CUDA is 12
 
 NOTE: python3.11 has a known `torchrun` bug, details [here](https://github.com/facebookresearch/llama/issues/86)
 
+
+### Newest Version=>4bit(qlora)/multi-gpu inference
+```
+pip install -r requirements_4bit.txt
+```
+This environment will encounter saving problems when training 8bit, which has not been solved yet（https://github.com/TimDettmers/bitsandbytes/issues/324）
+
+
 **Multi-gpu Training**
+#### for instruction tuning
+**8bit**
 
 ```bash
 bash scripts/finetune.sh
@@ -536,10 +544,29 @@ bash scripts/finetune.sh
   - MODEL_PATH，path of LLM
   - wandb: This is a training visualization tool that is not turned on by default in the script, and can be turned on by adding "--wandb" to the script
 
+
+**4bit**
+```bash
+bash scripts/finetune_4bit.sh
+```
+
+#### for conversational instruction tuning
+
+```bash
+bash scripts/finetune_chat.sh
+```
+
+#### For the case where 8bit cannot be turned on / for commanded trimming of fp16
+```bash
+bash scripts/finetune_deepspeed.sh
+```
+
+- use_deepspeed：set to 1:use deepspeed. Otherwise use fp16
+
 **Single-gpu Training**
 
 ```
-python finetune.py --data_path merge.json --test_size 2000
+CUDA_VISIBLE_DEVICES=0 python finetune.py --data_path merge.json --test_size 2000
 ```
 
 - The test_size cannot be larger than the data size
