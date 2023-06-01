@@ -36,6 +36,7 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 在提问题之前，请务必先看看这个[FAQ](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)，这里总结了大部分常见的问题。
 
 ## What‘s New
+- June, 1, 2023：支持4bit训练+推理，提供了多卡推理接口（环境与原本8bit不同！同时提供了test_tokenizers.py测eos正不正常）
 - **May 17, 2023: 开放法律问答模型 [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) ，表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)**
 - May 10, 2023：开放有更好对话能力的 [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) . 表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1.md)
 - May 10, 2023：开放上述模型的微调数据[instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl)：3万条sharegpt中文数据和2万条[alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)数据组成
@@ -482,21 +483,18 @@ def gcd(a, b):
 - lora模型：
 
   - 我们提供了一个在上面混合数据上训练的lora模型
-    - lora model
-      -  https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-4000  
-      - https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-8000  
-      - https://github.com/Facico/Chinese-Vicuna/tree/master/lora-Vicuna/checkpoint-final 
-    - 你也可以从huggingface上加载我们的模型或其他lora模型，加载方式参考[generate.py](https://github.com/Facico/Chinese-Vicuna/blob/master/generate.py)
-      - `Facico/Chinese-Vicuna-lora-7b-0.75epoch-belle-and-guanaco`
-      - `Facico/Chinese-Vicuna-lora-7b-1.5epoch-belle-and-guanaco`
-      - `Facico/Chinese-Vicuna-lora-7b-3epoch-belle-and-guanaco`
+    - 你可以从huggingface上加载我们的模型或其他lora模型，加载方式参考[generate.py](https://github.com/Facico/Chinese-Vicuna/blob/master/generate.py)
+      - `Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco`
+      - `Chinese-Vicuna/Chinese-Vicuna-lora-13b-belle-and-guanaco`
     - 模型使用的是8bit+lora+256 tokens
+    - 更多模型请查看：https://huggingface.co/Chinese-Vicuna
 
 - 设备：
 
-  - 训练：一张2080Ti即可。由于数据长度都在256以内，大概占用9G显存。
+  - 训练：一张2080Ti即可。由于数据长度都在256（代码设置为cutoff_len，默认阶段长度）以内，大概占用9G显存。
     - 70w的数据，3个epoch，一张2080Ti大概200h
-  - 推理：一张2080Ti即可。
+    - 13B需要18G左右显存（在3090上可以将数据长度开到2048）
+  - 推理：一张2080Ti即可（7B）,同时支持多卡推理（差不多均匀负载，某张卡会负载高一点）。
   - 我们对纯CPU上推理也进行了支持，详情见[`tools`](https://github.com/Facico/Chinese-Vicuna/blob/master/tools)
   
 
@@ -507,13 +505,22 @@ def gcd(a, b):
 ```
 pip install -r requirements.txt
 ```
+NOTE: python3.11 has a known `torchrun` bug, details [here](https://github.com/facebookresearch/llama/issues/86)
 
 本地的python环境是3.8，torch是1.13.1，CUDA是12，transformers是4.28.0.dev0，tokenizers是0.13.2，sentencepiece是0.1.97
 
-**多卡训练**
+### 最新版本=>4bit(qlora)/多卡推理
 
+```
+pip install -r requirements_4bit.txt
+```
+这个环境训练8bit会遇到保存问题，目前还没有解决（https://github.com/TimDettmers/bitsandbytes/issues/324）
+
+**多卡训练**
+#### 用于指令式微调
+**8bit**
 ```bash
-bash finetune.sh
+bash scripts/finetune.sh
 ```
 
 - 这里需要注意的参数如下
@@ -524,10 +531,27 @@ bash finetune.sh
   - MODEL_PATH，上游模型
   - wandb：这是一个训练可视化工具，脚本中默认没开，可以在脚本中加入"--wandb"来开启
 
+**4bit**
+```bash
+bash scripts/finetune_4bit.sh
+```
+
+#### 用于对话式微调
+
+```bash
+bash scripts/finetune_chat.sh
+```
+
+#### 用于不能开8bit情况/用于fp16的指令式微调
+```bash
+bash scripts/finetune_deepspeed.sh
+```
+
+- use_deepspeed：设置为1表示要用 deepspeed，否则使用fp16
 **单卡训练**
 
 ```
-python finetune.py --data_path merge.json --test_size 2000
+CUDA_VISIBLE_DEVICES=0 python finetune.py --data_path merge.json --test_size 2000
 ```
 
 - 这个test_size不能大于数据大小
@@ -535,7 +559,7 @@ python finetune.py --data_path merge.json --test_size 2000
 **inference并使用gradio生成一个网页（用于指令问答）**
 
 ```bash
-bash generate.sh
+bash scripts/generate.sh
 ```
 
 - 这里需要注意的参数如下
@@ -547,12 +571,13 @@ bash generate.sh
   - USE_LOCAL，设置为1时会检查本地模型配置
 - 使用的时候，"max_tokens"根据自己电脑的显存来设置，如果生成的内容产生了很多重复信息，可以将"Repetition Penalty"调高
 
+
 **多轮交互**
 
 由于我们在训练的时候用的基本是指令的prompt，所以闲聊对话能力还比较差，后续将增加这一部分的训练。
 
 ```bash
-bash interaction.sh
+bash scripts/chat.sh
 ```
 
 - 使用gradio构造的一个简单的交互界面，可以根据自己的机器设置max_memory（它会截取历史对话的后面max_memory部分）
@@ -566,9 +591,6 @@ bash interaction.sh
 
 同时，为了更好的交互体验，我们自己实现了流式输出（打字机式）交互的chatbot，支持beam search、repetiion penalty的设置，能清空历史记录，选择不同的全局instruction等。
 
-```bash
-bash chat.sh
-```
 
 
 ## 断点重训/增量训练
