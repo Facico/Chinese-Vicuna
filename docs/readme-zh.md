@@ -15,7 +15,8 @@
 - 在一张3090（24G）上可以对Llama-13B进行指令微调 ([13b-instruct](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-13b-belle-and-guanaco))
 - 即使是长度为2048的对话，在3090上也可以完成Llama-7B的微调；使用5万条数据即可有不错效果 ([chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1))
 - 领域微调的例子：医学问答 和 法律问答。([medical](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-continue-finetune-7epoch-cMedQA2) and [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora))
-- 可在2080Ti/3090上轻松部署
+- 支持`qlora-4bit`，使用4bit可以在2080Ti上完成13B的训练
+- 可在2080Ti/3090上轻松部署，支持多卡同时推理，可进一步降低显存占用
 
 项目包括
 
@@ -36,8 +37,8 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 在提问题之前，请务必先看看这个[FAQ](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)，这里总结了大部分常见的问题。
 
 ## What‘s New
-- June, 1, 2023：支持4bit训练+推理，提供了多卡推理接口（环境与原本8bit不同！同时提供了test_tokenizers.py测eos正不正常）
-- **May 17, 2023: 开放法律问答模型 [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) ，表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)**
+- **June, 1, 2023：支持4bit训练+推理，提供了多卡推理接口（注意需要使用和原本8bit不同的环境！建议使用`requirement_4bit.txt`安装新conda环境。同时提供了test_tokenizers.py测eos正不正常）**
+- May 17, 2023: 开放法律问答模型 [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) ，表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)
 - May 10, 2023：开放有更好对话能力的 [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) . 表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1.md)
 - May 10, 2023：开放上述模型的微调数据[instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl)：3万条sharegpt中文数据和2万条[alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)数据组成
 - March 23, 2023：开放了在belle+guanaco数据上训练50w条数据训练的checkpoint-4000

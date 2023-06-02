@@ -17,7 +17,8 @@ The advantages of our solution are high parameter efficiency, graphics card frie
 - Llama-13B instruction tuning is possible on a 3090 (24G) ([13b-instruct](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-13b-belle-and-guanaco))
 - Llama 7B can be fine-tuned on 3090 even for conversations of 2048 length; Use 50,000 pieces of data to get good results ([chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1))
 - Llama 7B fine-tuning example on [medical](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-continue-finetune-7epoch-cMedQA2) and [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) domains
-- Easily deployable on 2080Ti/3090
+- Support `qlora-4bit` which can train Llama 13B on 2080Ti. 
+- Easily deployable on 2080Ti/3090, support multiple-gpu inference, which can reduce VRAM more.
 
 The repo contains:
 - code for finetune the model 
@@ -40,8 +41,8 @@ Before asking questions, take a look at this [FAQ](https://github.com/Facico/Chi
 
 ## What‘s New
 
-- June, 1, 2023: support for 4bit training + inference, providing a multi-GPU inference interface (the environment is different from the original 8bit! Also provides test_tokenizers.py to check EOS token)
-- **May 17, 2023: Llama 7B fine-tuning example on [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) domains, The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)**
+- **June, 1, 2023: support for 4bit training + inference, providing a multi-GPU inference interface (NOTICE THAT the environment is different from the original 8bit! Also provides test_tokenizers.py to further check EOS token)**
+- May 17, 2023: Llama 7B fine-tuning example on [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) domains, The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)
 - May 10, 2023: Released [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) which have better conversational ability. The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1.md)
 - May 10, 2023: Released [instruct_chat_50k.jsonl](https://huggingface.co/datasets/Chinese-Vicuna/instruct_chat_50k.jsonl) which is composed of 30k Chinese sharegpt dataset and 20k [alpaca-instruction-Chinese-dataset](https://github.com/hikariming/alpaca_chinese_dataset)
 - April 11, 2023: Released our continuous-finetune on the vertical corpus of Chinese medical quizzes [Chinese-Vicuna-medical](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-medical.md).Provides examples of vertical corpus training

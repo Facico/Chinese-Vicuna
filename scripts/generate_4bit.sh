@@ -1,6 +1,6 @@
 TOT_CUDA="0,1,2,3" #Upgrade bitsandbytes to the latest version to enable balanced loading of multiple GPUs, for example: pip install bitsandbytes==0.39.0
 BASE_MODEL="decapoda-research/llama-7b-hf"
-LORA_PATH="/home/cciip/private/fanchenghao/branch/Chinese-Vicuna/lora-Vicuna/checkpoint-16200" #"Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco" #"./lora-Vicuna/checkpoint-final"
+LORA_PATH="./lora-Vicuna/checkpoint-16200" #"Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco" #"./lora-Vicuna/checkpoint-final"
 USE_LOCAL=1 # 1: use local model, 0: use huggingface model
 TYPE_WRITER=1 # whether output streamly
 if [[ USE_LOCAL -eq 1 ]]

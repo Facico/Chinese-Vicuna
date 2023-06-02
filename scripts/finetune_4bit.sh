@@ -3,7 +3,7 @@ CUDAs=(${TOT_CUDA//,/ })
 CUDA_NUM=${#CUDAs[@]}
 PORT="12345"
 
-DATA_PATH="/home/cciip/private/fanchenghao/dataset/instruction/merge.json" #"sample/instruct/data_sample.jsonl" #"../dataset/instruction/guanaco_non_chat_mini_52K-utf8.json" #"./sample/merge_sample.json"
+DATA_PATH="sample/instruct/data_sample.jsonl"
 OUTPUT_PATH="lora-Vicuna"
 MODEL_PATH="/model/yahma_llama_7b"
 lora_checkpoint="./lora-Vicuna/checkpoint-11600"
