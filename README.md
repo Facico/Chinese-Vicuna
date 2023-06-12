@@ -40,7 +40,7 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 Before asking questions, take a look at this [FAQ](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md) first! In the FAQ, you can find how to solve problems may be encountered when installing and using this project.
 
 ## What‘s New
-- June, 12, 2023: Release [Chinese-Vicuna-4bit](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco-4bit) and[Chinese-Vicuna-4bit-11600](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco-4bit-11600) which can be continue-finetuned
+- **June, 12, 2023: Release [Chinese-Vicuna-4bit](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco-4bit) and[Chinese-Vicuna-4bit-11600](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco-4bit-11600) which can be continue-finetuned**
 - June, 1, 2023: support for 4bit training + inference, providing a multi-GPU inference interface (NOTICE THAT the environment is different from the original 8bit! Also provides test_tokenizers.py to further check EOS token)
 - May 17, 2023: Llama 7B fine-tuning example on [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) domains, The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)
 - May 10, 2023: Released [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) which have better conversational ability. The performance is in [here](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1.md)

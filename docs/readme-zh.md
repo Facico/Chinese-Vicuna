@@ -37,7 +37,7 @@ https://user-images.githubusercontent.com/72137647/229739363-1b48f3a9-02a1-46ab-
 在提问题之前，请务必先看看这个[FAQ](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)，这里总结了大部分常见的问题。
 
 ## What‘s New
-- June, 12, 2023: 提供了[Chinese-Vicuna-4bit](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco-4bit)，以及[Chinese-Vicuna-4bit-11600](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco-4bit-11600)以供continue-finetune
+- **June, 12, 2023: 提供了[Chinese-Vicuna-4bit](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco-4bit)，以及[Chinese-Vicuna-4bit-11600](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco-4bit-11600)以供continue-finetune**
 - June, 1, 2023: 支持4bit训练+推理，提供了多卡推理接口（注意需要使用和原本8bit不同的环境！建议使用`requirement_4bit.txt`安装新conda环境。同时提供了test_tokenizers.py测eos正不正常
 - May 17, 2023: 开放法律问答模型 [legal](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-7b-legal-lora) ，表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1-legal.md)
 - May 10, 2023：开放有更好对话能力的 [chatv1](https://huggingface.co/Chinese-Vicuna/Chinese-Vicuna-lora-7b-chatv1) . 表现参考[这里](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/performance-chatv1.md)
