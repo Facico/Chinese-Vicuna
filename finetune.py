@@ -52,7 +52,7 @@ VAL_SET_SIZE = args.test_size #2000
 USE_8bit = True
 
 if USE_8bit is True:
-    assert bnb.__version__ >= '0.37.2', "Please downgrade bitsandbytes's version, for example: pip install bitsandbytes==0.37.2"
+    warnings.warn("If your version of bitsandbytes>0.37.2, Please downgrade bitsandbytes's version, for example: pip install bitsandbytes==0.37.2")
         
 TARGET_MODULES = [
     "q_proj",
