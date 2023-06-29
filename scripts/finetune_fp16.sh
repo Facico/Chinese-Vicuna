@@ -7,10 +7,10 @@ DATA_PATH="sample/instruct/data_sample.jsonl"
 OUTPUT_PATH="outs"
 MODEL_PATH="decapoda-research/llama-7b-hf"
 TEST_SIZE=1
-use_deepspeed=1
-if [ ${use_deepspeed} == "1" ]
+use_zero_offload=1
+if [ ${use_zero_offload} == "1" ]
 then
-    CUDA_VISIBLE_DEVICES=${TOT_CUDA} deepspeed --master_port=$PORT finetune_deepspeed.py \
+    CUDA_VISIBLE_DEVICES=${TOT_CUDA} deepspeed --master_port=$PORT finetune_fp16.py \
     --data_path $DATA_PATH \
     --output_path $OUTPUT_PATH \
     --model_path $MODEL_PATH \
@@ -19,7 +19,7 @@ then
     --test_size $TEST_SIZE \
     --deepspeed
 else
-    CUDA_VISIBLE_DEVICES=${TOT_CUDA} torchrun --nproc_per_node=$CUDA_NUM --master_port=$PORT finetune_deepspeed.py \
+    CUDA_VISIBLE_DEVICES=${TOT_CUDA} torchrun --nproc_per_node=$CUDA_NUM --master_port=$PORT finetune_fp16.py \
     --data_path $DATA_PATH \
     --output_path $OUTPUT_PATH \
     --model_path $MODEL_PATH \

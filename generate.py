@@ -54,7 +54,7 @@ except:
 if device == "cuda":
     model = LlamaForCausalLM.from_pretrained(
         BASE_MODEL,
-        #load_in_8bit=LOAD_8BIT,
+        load_in_8bit=LOAD_8BIT,
         torch_dtype=torch.float16,
         device_map="auto", #device_map={"": 0},
     )
