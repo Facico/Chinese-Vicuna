@@ -84,7 +84,33 @@ the median age at death in africa was about what?
 the mean of life is a good., and it’s not to be worth in your own homework for an individual who traveling on my back with me our localities that you can do some work at this point as well known by us online gaming sites are more than 10 years old when i was going out there around here we had been written about his time were over all sited down after being spent from most days while reading between two weeks since I would have gone before its age site;...
 ```
 ---
+## Quantize Models with AWQ
+Provides AWQ method for easy 4-bit level quantization.
+Please install autoAWQ with
+```bash
+pip install autoawq
+```
+- Quantize model to AWQ 4-bit.
+```bash
+python awq/basic_quant.py --model_path models/llama-7b-hf --save llama-7b-hf-awq
+```
 
+- Inference with quantized models.
+```bash
+python awq/basic_generate.py --quant_path llama-7b-hf-awq
+```
+
+- Run benchmarks of speed and memory usage of processing context (prefill) and generating tokens (decoding).
+```bash
+python awq/benchmark.py --model_path llama-7b-hf-awq
+```
+
+- Evaluate perplexity of quantized model or unquantized model
+```bash
+python awq/eval.py --model_path llama-7b-hf-awq
+python awq/eval.py --use_pretrained --model_path models/llama-7b-hf
+```
+---
 
 TODO:
 - [ ] fix `merge_lora.py` too much space occupation. 
