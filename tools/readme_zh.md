@@ -81,7 +81,32 @@ the median age at death in africa was about what?
 the mean of life is a good., and it’s not to be worth in your own homework for an individual who traveling on my back with me our localities that you can do some work at this point as well known by us online gaming sites are more than 10 years old when i was going out there around here we had been written about his time were over all sited down after being spent from most days while reading between two weeks since I would have gone before its age site;...
 ```
 ---
+## Quantize Models with AWQ
+提供AWQ(Activation-Aware Quantization)方法，轻松实现4位量化。请使用以下命令安装 autoAWQ
+```bash
+pip install autoawq
+```
+- 将模型量化为4-bit
+```bash
+python awq/basic_quant.py --model_path models/llama-7b-hf --save llama-7b-hf-awq
+```
 
+- 使用量化模型推理
+```bash
+python awq/basic_generate.py --quant_path llama-7b-hf-awq
+```
+
+- 获取处理上下文（预填充）和生成令牌（解码）的速度和内存使用的基准测试
+```bash
+python awq/benchmark.py --model_path llama-7b-hf-awq
+```
+
+- 评估量化模型或非量化模型的困惑度
+```bash
+python awq/eval.py --model_path llama-7b-hf-awq
+python awq/eval.py --use_pretrained --model_path models/llama-7b-hf
+```
+---
 
 TODO:
 - [ ] 调整`merge_lora.py`占用空间过大的问题。
