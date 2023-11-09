@@ -82,7 +82,7 @@ the mean of life is a good., and it’s not to be worth in your own homework for
 ```
 ---
 ## Quantize Models with AWQ
-提供AWQ(Activation-Aware Quantization)方法，轻松实现4位量化。请使用以下命令安装 autoAWQ
+提供AWQ(Activation-Aware Weight Quantization)方法，轻松实现4位量化。请使用以下命令安装 autoAWQ
 ```bash
 pip install autoawq
 ```
