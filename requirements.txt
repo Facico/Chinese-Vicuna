@@ -1,7 +1,9 @@
 accelerate==0.15.0
 appdirs==1.4.4
-bitsandbytes==0.37.0
-datasets==2.8.0
+bitsandbytes==0.41.1
+pydantic==1.10.13
+scipy==1.10.1
+datasets==2.14.6
 deepspeed==0.8.3
 evaluate==0.4.0
 fairscale==0.4.13
@@ -11,7 +13,7 @@ gradio==3.20.0
 huggingface-hub==0.13.3
 loralib==0.1.1
 nvitop==1.0.0
-peft @ git+https://github.com/huggingface/peft.git@13e53fc7ee5d89d59b16523051006dddf0fb7a49
+peft==0.6.0
 sentencepiece==0.1.96
 tensorboard==2.12.0
 texttable==1.6.7

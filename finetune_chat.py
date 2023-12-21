@@ -128,8 +128,8 @@ for example in examples:
 # 2. load model and checkpoints
 logger.info(f'>>> load model from {args.model_path}')
 
-if USE_8bit is True:
-    assert bnb.__version__ >= '0.37.2', "Please downgrade bitsandbytes's version, for example: pip install bitsandbytes==0.37.2"
+# if USE_8bit is True:
+#     assert bnb.__version__ >= '0.37.2', "Please downgrade bitsandbytes's version, for example: pip install bitsandbytes==0.37.2"
 model = LlamaForCausalLM.from_pretrained(
     args.model_path,
     load_in_8bit=USE_8bit,
@@ -179,7 +179,7 @@ for _, param in model.named_parameters():
 logger.info(f">>> trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}")
 
 # 3. speedup dataset processing by multi-process
-num_proc = (os.cpu_count())
+num_proc = 1#(os.cpu_count())
 if VAL_SET_SIZE > 0:
     train_val = data["train"].train_test_split(test_size=VAL_SET_SIZE, shuffle=True, seed=42)
     train_data = train_val["train"].shuffle().map(PROMPT.preprocess_train, num_proc=num_proc)
