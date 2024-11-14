@@ -13,7 +13,7 @@ gradio==3.20.0
 huggingface-hub==0.14.0
 loralib==0.1.1
 nvitop==1.0.0
-peft==0.6.0
+peft @ git+https://github.com/huggingface/peft.git@13e53fc7ee5d89d59b16523051006dddf0fb7a49
 sentencepiece==0.1.96
 tensorboard==2.12.0
 texttable==1.6.7
