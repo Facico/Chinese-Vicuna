@@ -2,7 +2,9 @@
 
 # Chinese-Vicuna: A Chinese Instruction-following LLaMA-based Model —— 一个中文低资源的llama+lora方案
 
-![GitHub Repo stars](https://img.shields.io/github/stars/Facico/Chinese-Vicuna?style=social) [![HuggingFace badge](https://camo.githubusercontent.com/4a295d6d34ed2c79cfe624ce6358a4be53d4187c883aaa9345fdc322937ce542/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f25463025394625413425393748756767696e67466163652d4a6f696e2d79656c6c6f77)](https://huggingface.co/Chinese-Vicuna) [![qq join](https://img.shields.io/badge/qq%E7%BE%A4%3A532581765-join-red)](https://jq.qq.com/?_wv=1027&k=47Z6bRjw) [![discord join](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/4FnhmeNHku)
+![GitHub Repo stars](https://img.shields.io/github/stars/Facico/Chinese-Vicuna?style=social) [![Generic badge](https://img.shields.io/badge/🤗-Huggingface%20Repo-yellow.svg)](https://huggingface.co/Chinese-Vicuna) 
+[![Technique Report](https://img.shields.io/badge/📃-arxiv%20-red.svg)](https://arxiv.org/abs/2504.12737)
+[![qq join](https://img.shields.io/badge/qq%E7%BE%A4%3A532581765-join-red)](https://jq.qq.com/?_wv=1027&k=47Z6bRjw) [![discord join](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/4FnhmeNHku)
  
  | [English](https://github.com/Facico/Chinese-Vicuna/blob/master/README.md) | [中文](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/readme-zh.md) | [NOTE&FAQ(Please take a look before using)](https://github.com/Facico/Chinese-Vicuna/blob/master/docs/notes.md)
 
@@ -690,10 +692,13 @@ For more details, see [tool readme](https://github.com/Facico/Chinese-Vicuna/tre
 If you find this project useful in your research, please consider citing:
 
 ```
-@inproceedings{leng2023chinese-vicuna,
-  title={Chinese-Vicuna: A Chinese Instruction-following LLaMA-based Model},
-  author={Chenghao Fan, Zhenyi Lu and Jie Tian},
-  url={https://github.com/Facico/Chinese-Vicuna},
-  year={2023}
+@misc{fan2025chinesevicunachineseinstructionfollowingllamabased,
+      title={Chinese-Vicuna: A Chinese Instruction-following Llama-based Model}, 
+      author={Chenghao Fan and Zhenyi Lu and Jie Tian},
+      year={2025},
+      eprint={2504.12737},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2504.12737}, 
 }
 ```
